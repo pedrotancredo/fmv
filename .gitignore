@@ -1,0 +1,16 @@
+
+*.wav
+Full Motion Video/.spyproject/config/codestyle.ini
+Full Motion Video/.spyproject/config/codestyle.ini
+Full Motion Video/.spyproject/config/codestyle.ini
+Full Motion Video/.spyproject/config/codestyle.ini
+Full Motion Video/.spyproject/config/defaults/defaults-codestyle-0.2.0.ini
+Full Motion Video/.spyproject/config/defaults/defaults-encoding-0.2.0.ini
+Full Motion Video/.spyproject/config/defaults/defaults-vcs-0.2.0.ini
+Full Motion Video/.spyproject/config/defaults/defaults-workspace-0.2.0.ini
+Full Motion Video/.spyproject/config/encoding.ini
+Full Motion Video/.spyproject/config/vcs.ini
+Full Motion Video/.spyproject/config/workspace.ini
+Full Motion Video/spikeless.py
+Output/TRE_ebur128.txt
+Output/TRE_lowpass.txt
