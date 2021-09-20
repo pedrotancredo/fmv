@@ -1,4 +1,4 @@
-param($entrada, $arquivodestino) # primeira linha
+param($entrada, $saida) # primeira linha
 
 Measure-Command {
     $pshost = Get-Host              # Get the PowerShell Host.
@@ -12,21 +12,44 @@ Measure-Command {
     . ".\library.ps1"
 
     if(Test-Path -Path $entrada -PathType Leaf){
-        $file = (Get-Item $entrada).DirectoryName + '\' + (Get-Item $entrada).Basename
+        $base = (Get-Item $entrada).Basename
+        $dir = (Get-Item $entrada).DirectoryName
+        $file = $dir + '\' + $base
+
         
-        
+        # Extraí o audio (Entrada = Arquivo a ser lido, Saída = Arquivo convertido, Ext = Extensão do arquivo convertido)
         $in = $entrada
-        $out = $file + '_out' 
-        $ext = '.wav'
+        $out = $file + '_mono.wav'
+         
+        ExtractAudio $in $out        
+        
+        #  Divide o arquivo em partes com audio (Entrada = Arquivo a ser dividido, Saida = Diretório onde serão armazenadas as partes)
+        $in = $out
+        $out = $file + '_mono_split\'
+        
+        SplitAudio $in $out
+        
+        # Remove-Item $in
 
-        ExtractAudio $in $out $ext
+        # Itera sobre todos os arquivos no diretório
+        Get-ChildItem $out -Filter *.wav | Foreach-Object {
 
-        $in = $out + $ext
-        $out = $arquivodestino# + $ext
+            $in = $_.FullName
+            $out2 = $_.DirectoryName + '\' + $_.BaseName + '_spikeless' + $_.Extension
 
-        SpikeRemove $in $out
+            SpikeRemove $in $out2
 
-        #EnhanceAudio $arquivodestino $arquivodestino $ext
+            Remove-Item $in
+            
+            $in = $out2 
+            $out = $out2 + '_out.wav'
+            
+            EnhanceAudio $in $out
+
+            Remove-Item $in
+
+
+        }       
 
     }
     else {

@@ -1,10 +1,18 @@
 function ExtractAudio {
 
-    param($in,$out,$ext)
+    param($in,$out)
     
+
     Write-Host "Extraí audio e converte para mono"
-    $out = $out + $ext
-    ffmpeg -i $in -vn -ac 1 $out -y
+
+    if(Test-Path -Path $in -PathType Leaf){
+        # $dir = (Get-Item $in).DirectoryName
+        # $base = (Get-Item $in).Basename
+        # $file = $dir + '\' + (Get-Item $in).Basename
+        # $ext = (Get-Item $in).Extension
+        
+        ffmpeg -i $in -vn -ac 1 $out -y
+    }
 }
 
 function SpikeRemove {
@@ -98,43 +106,41 @@ function SpikeRemove {
 
         $Clip=""
         $p = 0
-        For ($t=0; $t -lt $i - 2 ; $t++) {  
+        For ($t=0; $t -lt $i - 0 ; $t++) {  
             if([double]$aFTPK[$t] -eq 0){
 
                 #$tCenter = [double]$aTime[$t] 
-                $tLeft = [double]$aTime[$t] - 0.2
-                $tRight = [double]$aTime[$t] + 0.1     
+                $tLeft = [double]$aTime[$t] - 0.15
+                $tRight = [double]$aTime[$t] + 0.15
                 $Clip+="volume=enable='between(t,$([double]($tLeft)),$([double]$tRight))':volume=0"
                 $p++
             }
         }
 
-        #Write-Host "------------------------------------------------------------"
-        #Write-Host "Foram encotrados: $($p) picos."
-        $temp = $clip
-        $temp = $temp.Replace("0vo","0|vo")
-        $temp = $temp.Split("|")
-        #Write-Host "------------------------------------------------------------"
-        #For($i=0 ; $i -lt $temp.Count ; $i++){
-        #    Write-Host "Pico $($i+1): $($temp[$i])"
-        #}
-        # Write-Host "------------------------------------------------------------" 
+        # Write-Host "------------------------------------------------------------"
+        # Write-Host "Foram encotrados: $($p) picos."
+        # $temp = $clip
+        # $temp = $temp.Replace("0vo","0|vo")
+        # $temp = $temp.Split("|")
+        # Write-Host "------------------------------------------------------------"
+        # For($i=0 ; $i -lt $temp.Count ; $i++){
+        #     Write-Host "Pico $($i+1): $($temp[$i])"
+        # }
+        #  Write-Host "------------------------------------------------------------" 
 
         if(-Not ($clip -eq "")) {
             #Filtrar arquivo gerado removendo os picos de volume como saida final arquivo de audio
             #ffmpeg -i $in -af "$($clip.Replace("0vo","0,vo"))" $out'_spikeless'$ext -y
-            ffmpeg -i $in -af "$($clip.Replace("0vo","0,vo"))" ($out + $ext) -y
+            ffmpeg -i $in -af "$($clip.Replace("0vo","0,vo"))" $out -y
         }
         
         else {
 
-        #Apaga arquivo txt de referencia mapeado e mantem o .aac com ruido
-        #del $arquivodestino'.txt'
 
         }
         
         #Apaga os arquivos temporários gerados
-        Remove-Item ($in)
+        
         Remove-Item ($file + '_lowpass' + $ext)
         Remove-Item ($file + '_lowpass_boost' + $ext)
         Remove-Item ($file + '_lowpass.txt')
@@ -144,76 +150,144 @@ function SpikeRemove {
 }
 
 function EnhanceAudio {
-    param($in,$out,$ext)
+
+    param($in,$out)
+
+    if(Test-Path -Path $in -PathType Leaf){
+        $file = (Get-Item $in).DirectoryName + '\' + (Get-Item $in).Basename
+        #$ext = (Get-Item $in).Extension
+         
+        #Exporta arquivo com informações sobre o volume
+        ffmpeg -i $in -hide_banner -nostats -af "volumedetect" -f null - 2>$file'_volumedetect.txt' | Format -y
     
-    $suffix = "_spikeless"
-    $in += $suffix    
-    $out += $suffix
 
-    $suffix = "_anlmdn"
-    $out += $suffix
+        #Leitura do arquivo de texto com as informações sobre o volume
+        $Text = Get-Content $file'_volumedetect.txt'
 
-    ffmpeg -i $in'.'$ext -af "anlmdn" $out'.'$ext -y
+        #Transformando as linhas do arquivo em um array
+        $Text.GetType() | Format-Table -AutoSize
 
-    #Apaga temporário do spikeless
-    Remove-Item $in'.'$ext
-
-    
-    $in = $out
-    $suffix = "_volumeup"
-    $out += $suffix
-
-
-    #Exporta arquivo com informações sobre o volume
-    ffmpeg -i $in'.'$ext -hide_banner -nostats -af "volumedetect" -f null - 2>$in'_volumedetect.txt' | Format -y
-  
-
-    #Leitura do arquivo de texto com as informações sobre o volume
-    $Text = Get-Content $in'_volumedetect.txt'
-
-    #Transformando as linhas do arquivo em um array
-    $Text.GetType() | Format-Table -AutoSize
-
-    #Listando as linhas do arquivo
-    #Aplicando substituições para leitura do arquivo de texto
-    $filtro=$Text | ForEach-Object{$_ -replace "max_volume:","|Max|"} `
-                  | ForEach-Object{$_ -replace "dB",""} `
-                  | ForEach-Object{$_ -replace "\s+",""} `
-                  | Where-Object { $_ -notmatch "size"} `
-                  | Where-Object { $_ -notmatch "Summary"} `
+        #Listando as linhas do arquivo
+        #Aplicando substituições para leitura do arquivo de texto
+        $filtro=$Text | ForEach-Object{$_ -replace "max_volume:","|Max|"} `
+                    | ForEach-Object{$_ -replace "dB",""} `
+                    | ForEach-Object{$_ -replace "\s+",""} `
+                    | Where-Object { $_ -notmatch "size"} `
+                    | Where-Object { $_ -notmatch "Summary"} `
 
 
 
-    foreach ($element in $filtro) 
-    { 
-        $item = $element	
-	    $item=$item.split('|');
-        if($item.count -eq 3 -and $item[1] -eq "Max"){$MaxVolume = $item[2]}    
+        foreach ($element in $filtro) 
+        { 
+            $item = $element	
+            $item=$item.split('|');
+            if($item.count -eq 3 -and $item[1] -eq "Max"){$MaxVolume = $item[2]}    
+        }
+
+        $VolumeBoost = - $MaxVolume - 1
+
+      
+        #Ajuste de volume máximo para -1dB
+        ffmpeg -i $in -af "volume=$($VolumeBoost)dB" $out -y
+              
+        
+        Remove-Item $file'_volumedetect.txt'
+        # Remove-Item $in
     }
 
-    $VolumeBoost = - $MaxVolume - 1
+}
 
-    #Apaga temporário do volume txt
-    Remove-Item $in'_volumedetect.txt'
+function SplitAudio {
 
-    #Ajuste de volume máximo para -1dB
-    ffmpeg -i $in'.'$ext -af "volume=$($VolumeBoost)dB" $out'.'$ext -y
+    param($in,$out)
 
-    #Apaga temporário do spikeless
-    Remove-Item $in'.'$ext      
+    if(Test-Path -Path $in -PathType Leaf){
+        $dir = (Get-Item $in).DirectoryName
+        $base = (Get-Item $in).Basename
+        $file = $dir + '\' + (Get-Item $in).Basename
+        $ext = (Get-Item $in).Extension
+        
+        
+        # $in = '.\Data\LTMMOEST.ts'
+        # $out = '.\Data\LTMMOEST2.wav'
+        
+        
+        #Utiliza a silencedetect para mapear no vetor todas as posições para realizar os cortes, a entrada precisar ser um wav para aumentar o desempenho 
+        #Pega a duração e o bitrate do audio original
+        ffmpeg -i $in -af "silencedetect=n=-60dB:d=0.5" -f null - 2>$file'_silencedetect.txt' | Format -y
+        
+        #Leitura do arquivo de texto com os valores de silence detect
+        $Text = Get-Content $file'_silencedetect.txt'
+        
+        #Transformando as linhas do arquivo em um array 
+        $Text.GetType() | Format-Table -AutoSize
+        
+        #Listando as linhas do arquivo
+        #Aplicando substituições para leitura do arquivo de texto
+        $filtro=$Text | ForEach-Object{$_ -replace "tart:","|"} `
+                      | ForEach-Object{$_ -replace "nd:","|"} `
+                      | ForEach-Object{$_ -replace "]","|"} `
+                      | ForEach-Object{$_ -replace "\s+",""} `
+                      | Where-Object { $_ -notmatch "size"} `
+                      | Where-Object { $_ -notmatch "Summary"} `
+                      
+        $aStart = @()
+        $aEnd = @()
 
-    
-    #Remover a posteriori
-    #Remove Clips e Clicks
-    $in = $out
-    $suffix = "_click"
-    $out += $suffix
 
-    ffmpeg -i $in'.'$ext -af "adeclick" $out'.'$ext -y
+        foreach ($element in $filtro) {
+             $item = $element
+             $item=$item.split('|');
+             
 
-    #Apaga temporário do volume
-    Remove-Item $in'.'$ext
+             if($item.count -ge 3) {
+                if($item[1] -eq 'silence_e'){
+                    $aStart += $item[2]
+                }
+                elseif ($item[1] -eq 'silence_s') {
+                    $aEnd += $item[2]
+                }
+            }
+            
+        }
+        
+        # Write-Host "Start: $($aStart.Length)"
+        # Write-Host "End: $($aEnd.Length)"
+        
+        #expurta primeiro end
+        $aEnd = $aEnd[1..($aEnd.Length-1)]
+        #expurga último start
+        $aStart = $aStart[0..($aStart.Length-2)]
 
-    Rename-Item $out'.'$ext $arquivodestino'.'$ext
+        # Write-Host "Start: $($aStart.Length)"
+        # Write-Host "End: $($aEnd.Length)"
 
+        # Write-Host "Primeiro Start: $($aStart[0])"
+        # Write-Host "Primeiro End: $($aEnd[0])"
+        
+        # Write-Host "Ultimo Start: $($aStart[$aStart.length-1])"
+        # Write-Host "Ultimo End: $($aEnd[$aEnd.length-1])"
+
+        
+        # $newfolder = $base + '_split'
+        # If(!(Test-Path ($dir + '\' + $newfolder + '\'))) {
+        #     New-Item $dir -Name $newfolder -ItemType "directory"
+        # }
+        $newfolder = Split-Path $out -Leaf
+        If(!(Test-Path $out)) {
+            New-Item $dir -Name $newfolder -ItemType "directory"
+        }
+
+        # Divide os arquivos com base nos vetores mapeados
+        For ($i=0; $i -lt $aStart.length ; $i++) {  
+            
+            $Duration = [double]$aEnd[$i]-[double]$aStart[$i]
+            # $name = $dir + '\' + $newfolder + '\' + $base + '_' + [string]$aStart[$i] + '_' + [string]$aEnd[$i] + $ext
+            $name = $out + $base + '_' + [string]$aStart[$i] + '_' + [string]$aEnd[$i] + $ext
+            ffmpeg -ss $aStart[$i] -i $in -t $Duration -c copy $name -y
+
+        }
+
+        Remove-Item ($file + '_silencedetect.txt')
+    }
 }
