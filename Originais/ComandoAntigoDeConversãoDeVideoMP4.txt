@@ -1,0 +1,11 @@
+Comando Antigo FFMPEG para conversão de vídeos
+ffmpeg -i $arquivo -c:v libx264 -c:a aac -b:a 128k -movflags +faststart -vf scale=-2:720 $arquivodestino'.mp4'
+
+
+ffmpeg -i $arquivo -c:v libx264 -c:a aac -ac 1 -b:a 96k -af afftdn,adeclip,adeclick=b=5,acompressor -movflags +faststart -vf yadif=1,scale=-2:720 $arquivodestino'.mp4'
+
+5.1.18362
+
+
+
+"volume=enable='between(t,38.2,38.6)':volume=0,volume=enable='between(t,81.3,81.7)':volume=0,volume=enable='between(t,165.5,165.9)':volume=0,volume=enable='between(t,165.6,166)':volume=0,volume=enable='between(t,170.2,170.6)':volume=0,volume=enable='between(t,198.4,198.8)':volume=0"

@@ -1,0 +1,72 @@
+https://www.aeronetworks.ca/2018/05/mpeg-2-transport-streams.html  
+
+
+
+472  ffmpeg 
+  499  ffmpeg -i Day\ Flight.mpg -map data-re -codec copy -f data - | python ./klvdata_test.py
+  501  wget http://samples.ffmpeg.org/MPEG2/mpegts-klv/Day%20Flight.mpg
+  506  ffmpeg -i Day.mpg -map data-re -codec copy -f data - | python ./klvdata_test.py
+  507  ffmpeg -i Day.mpg 
+  508  ffmpeg 
+  509  ffmpeg  -h
+  510  ffmpeg -i Day.mpg -codec copy -f data - | python ./klvdata_test.py
+  511  ffmpeg -i Day.mpg -codec copy -f data teste1
+  514  ffmpeg -i Day.mpg -map data-re -codec -f data Day.bin
+  516  ffmpeg -i Day.mpg -map data-re -codec -f data Day.lv
+  517  ffmpeg -i Day.mpg day.vklv -map data-re -codec -f data
+  518  ffmpeg -i Day.mpg day.klv -map data-re -codec -f data
+  519  ffmpeg -i Day.mpg day.bin -map data-re -codec -f data
+  520  sudo yum update ffmpeg
+  521  ffmpeg -i Day.mpg -map data-re -codec -f data Day.bin
+  522  ffmpeg -i Day.mpg -map 0:1 -codec -f data Day.bin
+  523  ffmpeg -i Day.mpg -map 0:1 -codec Day.bin
+  524  ffmpeg -i Day.mpg day.bin -map 0:1 -codec
+  525  ffmpeg -i Day.mpg -map 0:1 -codec -f day.bin
+  526  ffmpeg -i Day.mpg -map 0:1 -codec -f 
+  527  ffmpeg -i Day.mpg -map 0:1 -codec -f day
+  528  ffmpeg -i Day.mpg -map 0:1 -codec -f data
+  529  ffmpeg -map 0:1 -codec -i Day.mpg day
+  531  ffmpeg -map data-re  -codec -i Day.mpg day
+  532  ffmpeg -i Day.mpg -map 0:1 -codec
+  533  ffmpeg -i Day.mpg -map 0:1
+  534  ffmpeg -i Day.mpg dat -map 0:1
+  535  ffmpeg -i Day.mpg day.bin -map 0:1
+  536  ffmpeg -i Day.mpg -map 0:1 -f day.bin
+  537  ffmpeg -i Day.mpg -map 0:1 -fday.bin
+  538  ffmpeg -i Day.mpg -map 0:1 -f day.bin
+  541  ffmpeg Day.mpg 
+  543  ffmpeg Day.mpg 
+  544  ffmpeg -i Day.mpg 
+  545  ffmpeg -i Day.mpg -map d:0 -f data dout1.txt
+  549  ffmpeg -i Day.mpg -map d:0 -f data dayflightklv.dat
+  554  ffmpeg -i Day.mpg -map d:0 -f data - | python ./klvdata_test.py < dayflightklv.dat  
+  555  ffmpeg -i Day.mpg -map d:0 -f data - | python ./klvdata_test.py 
+  558  ffmpeg -i SEEST.ts -map d:0 -f data - | python teste/klvdata_test.py
+  559  ffmpeg -i SEEST.ts 
+  562  ffmpeg -i SEEST.ts -map d:0 -f data dayflightklv.dat
+  568  ffmpeg -i SEEST.ts -map d:1 -f data dayflightklv1.dat
+  570  ffmpeg -i SEEST.ts -map d:2 -f data dayflightklv1.dat
+  571  ffmpeg -i SEEST.ts -map 0:2 -f data dayflightklv1.dat
+  584  ffmpeg -v 0 -ss X -i SEEST.ts -map 0:1 -c copy -f framecrc -
+  587  ffmpeg -v 0 -ss X -i SEEST.ts -map 0:1 -c copy -f framecrc frame
+  589  ffmpeg -v 0 -ss X -i SEEST.ts -map 0:2 -c copy -f framecrc 
+  591  ffmpeg -v 0 -ss X -i SEEST.ts -map 0:2 -c copy -f framecrc -
+  592  ffmpeg -v 0 -ss X -i SEEST.ts -map 0:2 -c copy -f framecrc - | python klvdata_test.py 
+  593  ffmpeg -i SEEST.ts -re -map 0:2 -f data dayflightklv2RE.dat
+  594  ffmpeg -i SEEST.ts -map 0:2 -f data dayflightklv2RE.dat
+  597  ffmpeg -re -i SEEST.ts -map 0:2 -f data dayflightklv2RE.dat
+  600  ffmpeg -re -i SEEST.ts -map 0:2 -codec copy -f data dayflightklv2RE_Copy.dat
+  743  ffmpeg 978fc0b614fc41ad94cbe1f2b53412f_upload_1592664889200.amr 
+  744  ffmpeg -formats
+  745  ffmpeg 
+  747  ffmpeg -i 978fc0b614fc41ad94cbe1f2b53412f_upload_1592664889200.amr -vn -ar 44100 -ac 2 -b:a 192k output.mp3
+  757  ffmpeg -h
+  758  ffmpeg -h |grep skip
+  759  ffmpeg -h |grep pm
+  760  ffmpeg -h 
+  761  sudo dnf install ffmpeg
+  829  ffmpeg -i SEEST.ts -f mpegts udp://127.0.0.1:4800
+  913  history |grep ffmpeg
+  914  ffmpeg -i Day.mpg -map d:0 -f data dout1.txt
+  921  ffmpeg -i SEEST.ts -map d:0 -f data seest.txt
+  997  history | grep ffmpeg >>comandosffmpeg.txt
