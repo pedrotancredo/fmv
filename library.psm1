@@ -353,38 +353,24 @@ function FMVVideo {
 }
 
 function FMVAudio {
-    param($in,$out, $params)
+    param($in,$out)
     
-    $output = $out + '.wav'
+    $ext = (Get-Item $in).Extension
+    $temp = $out.Substring(0,$out.Length - $ext.Length) + '_mono'
 
-    $exists = Test-Path -Path $output
-    $replace = $params -Like '*-replace*'
+    ExtractAudio $in $temp
+
+    $temp = $temp + '.wav'
+    $temp2 = $temp + '_spikeless.wav'
     
-    if($replace -or (-not $exists)) {
+    SpikeRemove $temp $temp2
+    Remove-Item $temp
 
-        $ext = (Get-Item $in).Extension
-        $temp = $out.Substring(0,$out.Length - $ext.Length) + '_mono'
-    
-        ExtractAudio $in $temp
-    
-        $temp = $temp + '.wav'
-        $temp2 = $temp + '_spikeless.wav'
-        
-        SpikeRemove $temp $temp2
-        Remove-Item $temp
-    
-        EnhanceAudio $temp2 $output
-        Remove-Item $temp2
-    }
+    $out = $out + '.wav'
+    EnhanceAudio $temp2 $out
+    Remove-Item $temp2
 
-    else {
-            Write-Host "Arquivo existente, sem parametro substituir."
-            Write-Host "Nada a ser feito."
-    }
-
-            
-
-    Write-Host 'Concluido.'
+    Write-Host 'Concluido'
     
 }
 
@@ -429,7 +415,7 @@ function FMVSTT {
 }
 
 function Iterator {
-    param($Inlet,$Extension,[scriptblock]$Call,$Outlet,$Params)
+    param($Inlet,$Extension,[scriptblock]$Call,$Outlet)
     
     $Origem = Convert-Path $Inlet
     
@@ -443,10 +429,6 @@ function Iterator {
             
         Write-Host "------------------------------------------------------------------------------------------------------"
         Write-Host "Arquivo a ser processado: $($_.Name)"
-        if($Origem.Substring($Origem.Length - 1, 1) -eq '\') {
-            $Origem.Substring($Origem.Length - 1, 1)
-            $Origem = $Origem.Substring(0,$Origem.Length - 1)
-        }
         $sub = ($_.FullName).Replace($Origem,'')
         $dir = ($_.DirectoryName).Replace($Origem,'')
         $destinovideo = $Outlet + $sub
@@ -464,6 +446,6 @@ function Iterator {
 
         $arquivoorigem=$_.FullName;
         $arquivodestino=$destinovideo;
-        $Call.Invoke($arquivoorigem, $arquivodestino, $Params)
+        $Call.Invoke($arquivoorigem, $arquivodestino)
     }	                        
 }
