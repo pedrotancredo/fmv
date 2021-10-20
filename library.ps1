@@ -1,9 +1,10 @@
 function ExtractData {
     param($arquivo, $arquivodestino) # primeira linha
 
-    Write-Host "Essse comando tera como saida um arquivo binario com extensao bin extraido do arquivo diretamente do arquivo .TS compativel com STANAG 4609 / MISB 0601 e MISB 0102 "
+    Write-Host "Extraindo binario..."
+    # Write-Host "Esse comando tera como saida um arquivo binario com extensao bin extraido do arquivo diretamente do arquivo .TS compativel com STANAG 4609 / MISB 0601 e MISB 0102 "
     if ($arquivo -and $arquivodestino){
-        ffmpeg -i $arquivo -map d:0 -f data $arquivodestino'.bin'
+        ffmpeg -i $arquivo -map d:0 -f data $arquivodestino'.bin' -y 2>&1 | Select-String -Pattern 'time=(.*?)bit.*?speed=([\s0-9]+)x' -AllMatches | ForEach-Object { Write-Progress 'Extraindo binario: ' $_}
     } else {
     Write-Host "Arquivo nao informado. Por favor execute:"
     Write-Host "----------------------------------------------"
@@ -14,9 +15,11 @@ function ExtractData {
 function ConvertJSON {
     param($arquivo,$arquivodestino) # primeira linha
     
-    Write-Host "Esse comando terá como saída um arquivo JSON com todos os dados extraidos do arquivo binário .TS"
+    Write-Host "Convertendo json..."
+    # Write-Host "Esse comando terá como saída um arquivo JSON com todos os dados extraidos do arquivo binário .TS"
     if ($arquivo -and $arquivodestino){
-        python .\metadataToJsonDistinctLatLongValueOnly.py $arquivo $arquivodestino
+        # python .\metadataToJsonDistinctLatLongValueOnly.py ($arquivo + '.bin') $arquivodestino
+        python .\metadataToJsonDistinctLatLongValueOnly.py $($arquivo) $($arquivodestino)
         #python C:\ScriptsPowerShell\metadataToJson.py $arquivo $arquivodestino
     } 
     else {
@@ -27,7 +30,7 @@ function ConvertJSON {
 }
 function ExtractAudio {
 
-    param($in,$out)
+    param($in,$out,$params)
 
     Write-Host "Extraindo audio..."
 
@@ -37,10 +40,12 @@ function ExtractAudio {
         # $file = $dir + '\' + (Get-Item $in).Basename
         # $ext = (Get-Item $in).Extension
         
-        ffmpeg -i $in -vn -ac 1 $out'.wav' -y
+        # https://stackoverflow.com/questions/33913878/how-to-get-the-captured-groups-from-select-string
+        # Multiline com Duration /(?s)Duration:\s*(.*?),.*time=(.*?)\s*bit.*?speed=\s*([0-9]+)x/gm
+
+            ffmpeg -i $in -vn -ac 1 $out'.wav' -y 2>&1 | Select-String -Pattern 'time=(.*?)bit.*?speed=([\s0-9]+)x' -AllMatches | ForEach-Object { Write-Progress 'Extraindo audio: ' $_}
     }
 }
-
 function SpikeRemove {
     
     param($in,$out)
@@ -49,15 +54,18 @@ function SpikeRemove {
     
     if(Test-Path -Path $in -PathType Leaf){
         
-        $file = (Get-Item $in).DirectoryName + '\' + (Get-Item $in).Basename
+        # $file = (Get-Item $in).DirectoryName + '\' + (Get-Item $in).Basename
+        $temp = $out.Substring(0,$out.Length - $ext.Length) 
+        $file = ForceResolvePath($temp)
         $ext = (Get-Item $in).Extension
+        $outfile = ForceResolvePath $out
             
         #Cria um arquivo temporário para análise dos picos utilizando lowpass
         $lowpass = 20
         ffmpeg -i $in -af "lowpass=f=$($lowpass)" $file'_lowpass'$ext -y
         
         #Análise da sonoridade do arquivo lowpass
-        ffmpeg -i $file'_lowpass'$ext -hide_banner -nostats -af 'loudnorm=I=-16:TP=-1.5:LRA=11:print_format=summary' -f null - 2>$file'_lowpass.txt' | Format -y
+        ffmpeg -i $file'_lowpass'$ext -hide_banner -nostats -af 'loudnorm=I=-16:TP=-1.5:LRA=11:print_format=summary' -f null - 2>$file'_lowpass.txt' | Format -y 
 
         #Leitura do arquivo de texto com a sonoridade do arquivo lowpass
         $Text = Get-Content $file'_lowpass.txt'
@@ -117,66 +125,135 @@ function SpikeRemove {
 
         ###compor linha de comando do ffmpeg para remoção do ruido considerando deltaT atualmente 0.1 segundos
         # sintaxe: volume=enable='between(t,<tempo> - deltaT,<tempo> + deltaT)':volume=0
-        $aFTPK = @();
-        $aTime = @();
-        $i=0;
+        # $aFTPK = @();
+        $aPeakTime = @();
+        # $i=0;
         
         foreach ($element in $Extension) { 
         
             $item = $element	
             $item=$item.split('|');
             if($item.count -eq 9){
-                $aTime += $item[1]
-                $aFTPK += $item[7]       
-                $i++        
+                if([double]$item[7] -eq 0){
+                    $aPeakTime += $item[1]
+                    $p++
+                }                
             }
         }
         #Write-Host "Total de Elementos: $($i)."
+        if ($aPeakTime.Count -ne 0 ) {
 
-        $Clip=""
-        $p = 0
-
-        For ($t=0; $t -lt $i - 0 ; $t++) {  
-            if([double]$aFTPK[$t] -eq 0){
+            # $Clip=""
+            # For ($t=0; $t -lt $i - 0 ; $t++) {  
+            #     if([double]$aFTPK[$t] -eq 0){
+                    
+            #         #$tCenter = [double]$aTime[$t] 
+            #         $p++
+            #         $tLeft = [double]$aPeakTime[$t] - 0.15
+            #         $tRight = [double]$aPeakTime[$t] + 0.15
+            #         $Clip+="volume=enable='between(t,$([double]($tLeft)),$([double]$tRight))':volume=0"
+            #     }
+            # }
             
-                #$tCenter = [double]$aTime[$t] 
-                $tLeft = [double]$aTime[$t] - 0.15
-                $tRight = [double]$aTime[$t] + 0.15
-                $Clip+="volume=enable='between(t,$([double]($tLeft)),$([double]$tRight))':volume=0"
-                $p++
+            # Write-Host "------------------------------------------------------------"
+            # Write-Host "Foram encotrados: $($p) picos."
+            # $temp = $clip
+            # $temp = $temp.Replace("0vo","0|vo")
+            # $temp = $temp.Split("|")
+            # Write-Host "------------------------------------------------------------"
+            # For($i=0 ; $i -lt $temp.Count ; $i++){
+            #     Write-Host "Pico $($i+1): $($temp[$i])"
+            # }
+            # Write-Host "------------------------------------------------------------" 
+            
+            $stepsize = 300
+            $numofsteps = [math]::floor([double]($p/$stepsize))
+            $laststep = $p % $stepsize
+            $temppeak = $file + '_0_' + $ext
+            # $temp = (Get-Item $in).BaseName + '_0_' + $ext
+            Copy-Item $in $temppeak
+            
+    
+            # Multiplos
+            for ($step = 0; $step -lt $numofsteps; $step++) {
+                
+                $Clip=""
+    
+                for ($item = 0; $item -lt $stepsize; $item++){
+    
+                    $t = $step*$stepsize + $item
+                    # Write-Host 'Multiplos'  $t
+                    $tLeft = [double]$aPeakTime[$t] - 0.15
+                    $tRight = [double]$aPeakTime[$t] + 0.15
+                    $Clip+="volume=enable='between(t,$([double]($tLeft)),$([double]$tRight))':volume=0"                
+                }
+                
+                if(-Not ($clip -eq "")) {
+                    $temppeak = $file + '_' + $step + '_' + $ext
+                    $temppeak2 = $file + '_' + ($step + 1) + '_' + $ext
+                    ffmpeg -i $temppeak -af "$($clip.Replace("0vo","0,vo"))" $temppeak2 -y
+                }
             }
-        }
+    
+            # Se o número de picos for inferior ao batch o que aconteceu é que o último comando ffmpeg termina com nome temp2, e acaba sendo removido na etapa de limpeza
+            # para resolver o problema é preciso encontrar uma maneira de renomear o arquivo final após todas as extrações
+            $Clip=""
+    
+            for ($item = 0; $item -lt $laststep; $item++){
+                $t = $step*$stepsize + $item
+    
+                # Write-Host 'Nao Multiplos' $t
+                $tLeft = [double]$aPeakTime[$t] - 0.15
+                $tRight = [double]$aPeakTime[$t] + 0.15
+                $Clip+="volume=enable='between(t,$([double]($tLeft)),$([double]$tRight))':volume=0"                
+            }
             
-        # Write-Host "------------------------------------------------------------"
-        # Write-Host "Foram encotrados: $($p) picos."
-        # $temp = $clip
-        # $temp = $temp.Replace("0vo","0|vo")
-        # $temp = $temp.Split("|")
-        # Write-Host "------------------------------------------------------------"
-        # For($i=0 ; $i -lt $temp.Count ; $i++){
-        #     Write-Host "Pico $($i+1): $($temp[$i])"
-        # }
-        #  Write-Host "------------------------------------------------------------" 
-        
-        if(-Not ($clip -eq "")) {
-            #Filtrar arquivo gerado removendo os picos de volume como saida final arquivo de audio
-            #ffmpeg -i $in -af "$($clip.Replace("0vo","0,vo"))" $out'_spikeless'$ext -y
-            ffmpeg -i $in -af "$($clip.Replace("0vo","0,vo"))" $out -y
-        }
+            if(-Not ($clip -eq "")) {
+                $temppeak = $file + '_' + $step + '_' + $ext
+                $temppeak2 = $file + '_' + ($step + 1) + '_' + $ext
+                ffmpeg -i $temppeak -af "$($clip.Replace("0vo","0,vo"))" $temppeak2 -y
             
+            }
+
+    
+    
+            Rename-Item $temppeak2 $outfile
+            
+            #Apaga os arquivos temporários gerados        
+            # Remove-Item ($file + '_lowpass' + $ext)
+            # Remove-Item ($file + '_lowpass_boost' + $ext)
+            # Remove-Item ($file + '_lowpass.txt')
+            # Remove-Item ($file + '_ebur128.txt')
+            #Rename-Item ($out + '_spikeless' + $ext) ($out + $ext)
+    
+            
+        }
         else {
-        
+            # só poe a saida aki
+            Copy-Item $in $outfile
         }
-            
-        #Apaga os arquivos temporários gerados
-        
-        
-        Remove-Item ($file + '_lowpass' + $ext)
-        Remove-Item ($file + '_lowpass_boost' + $ext)
-        Remove-Item ($file + '_lowpass.txt')
-        Remove-Item ($file + '_ebur128.txt')
-        #Rename-Item ($out + '_spikeless' + $ext) ($out + $ext)
+        Remove-Item ($file + '_*')
     }
+}
+
+function ForceResolvePath {
+    <#
+    .SYNOPSIS
+        Calls Resolve-Path but works for files that don't exist.
+    .REMARKS
+        From http://devhawk.net/blog/2010/1/22/fixing-powershells-busted-resolve-path-cmdlet
+    #>
+    param (
+        [string] $FileName
+    )
+
+    $FileName = Resolve-Path $FileName -ErrorAction SilentlyContinue `
+                                       -ErrorVariable _frperror
+    if (-not($FileName)) {
+        $FileName = $_frperror[0].TargetObject
+    }
+
+    return $FileName
 }
 
 function EnhanceAudio {
@@ -389,11 +466,30 @@ function FMVAudio {
 }
 
 function FMVData {
-    param($in,$out)
+    param($in,$out, $params)
+
+    $ext = (Get-Item $in).Extension
+    $temp = $out.Substring(0,$out.Length - $ext.Length)
+
+    $output = $out + '.json'
+
+    $exists = Test-Path -Path $output
+    $replace = $params -Like '*-replace*'
     
-    $temp = 'aaa'
-    ExtractData $in $temp
-    ConvertJSON $temp $out
+    if($replace -or (-not $exists)) {
+
+        ExtractData $in $temp
+        
+        $temp = $temp + '.bin'
+        
+        ConvertJSON $temp $out
+        
+        Remove-Item $temp
+    }
+    else{
+        Write-Host "Arquivo existente, sem parametro substituir."
+        Write-Host "Nada a ser feito."
+    }
 
 }
 

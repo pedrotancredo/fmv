@@ -1,7 +1,6 @@
 
 $directorypath = Split-Path $MyInvocation.MyCommand.Path
-Write-Host $directorypath
-
+Set-Location -Path $directorypath
 $libpath = $directorypath + "\library.ps1"
 . $libpath
 
@@ -11,14 +10,12 @@ $libpath = $directorypath + "\library.ps1"
 Measure-Command {
 
     $FMVVideo = 0
-    $FMVAudio = 1
+    $FMVAudio = 0
     $FMVSTT   = 0
-    $FMVData  = 0
-    
-    # $Entrada = '.\Data'    
-    # $Entrada = 'F:\2021\DRG'
-    
+    $FMVData  = 1
+       
     $Entrada = 'Z:\'
+    # $Entrada = '.\Data\2020\DRL'
     $Sobre = '*.ts'
 
     if($FMVVideo) {
@@ -30,7 +27,7 @@ Measure-Command {
     
     if($FMVAudio) {
         
-        # $Saida = '.\Output\TS_audios'
+        # $Saida = '.\Output\TS_audios2020'
         $Saida = 'Y:\TS_audios'
         $Parametros = '-debug' #-replace -debug -remove
         Iterator $Entrada $Sobre -Call $function:FMVAudio $Saida $Parametros
@@ -39,21 +36,30 @@ Measure-Command {
 
     if($FMVSTT) {
 
-        $Saida = '.\Output\TS_STT'
+        # $Saida = '.\Output\TS_STT'
+        $Saida = 'D:\Output\TS_STT'
         Iterator $Entrada $Sobre -Call $function:FMVSTT $Saida
 
     }
 
     if($FMVData) {
     
-        $Saida = '.\Output\TS_Dados'
-       
-        Iterator $Entrada $Sobre -Call $function:FMVData $Saida
+        # $Saida = '.\Output\TS_Dados'
+        $Saida = 'Y:\TS_dados'
+        $Parametros = '-debug' #-replace -debug -remove
+        Iterator $Entrada $Sobre -Call $function:FMVData $Saida $Parametros
 
-        $Entrada = '.\Output\TS_Dados3'
-        $Sobre = '*.bin'
-        $Saida = '.\Output\TS_Dados4'
-        Iterator $Entrada $Sobre -Call $function:ConvertJSON $Saida
+        # $Entrada = '.\Output\TS_Dados3'
+        # $Sobre = '*.bin'
+        # $Saida = '.\Output\TS_Dados4'
+        # Iterator $Entrada $Sobre -Call $function:ConvertJSON $Saida
     }
 
 }
+
+
+
+# ffmpeg -i .\Data\2020\DRL\LTCHPFDI_LTCAMFDI_T0229.ts -vn -ac 1 .\Output\TESTE\Issoai.wav -y 2>&1 | Select-String -Pattern 'time=(.*?)bit.*?speed=([\s0-9]+)x' -AllMatches | ForEach-Object { Write-Progress $_}
+
+# SpikeRemove 'D:\Output\TS_STT\2020\DRL\LTCHPFDI_LTCAMFDI_T0229.ts\LTCHPFDI_LTCAMFDI_T0229#3584.95#3585_mono.wav' 'D:\Output\Aqui.wav'
+
