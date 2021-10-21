@@ -11,11 +11,11 @@ Measure-Command {
 
     $FMVVideo = 0
     $FMVAudio = 0
-    $FMVSTT   = 0
-    $FMVData  = 1
+    $FMVSTT   = 1
+    $FMVData  = 0
        
-    $Entrada = 'Z:\'
-    # $Entrada = '.\Data\2020\DRL'
+    # $Entrada = 'Z:\'
+    $Entrada = '.\Data\'
     $Sobre = '*.ts'
 
     if($FMVVideo) {
@@ -27,8 +27,8 @@ Measure-Command {
     
     if($FMVAudio) {
         
-        # $Saida = '.\Output\TS_audios2020'
-        $Saida = 'Y:\TS_audios'
+        $Saida = '.\Output\TS_audios2021'
+        # $Saida = 'Y:\TS_audios'
         $Parametros = '-debug' #-replace -debug -remove
         Iterator $Entrada $Sobre -Call $function:FMVAudio $Saida $Parametros
 
@@ -36,8 +36,8 @@ Measure-Command {
 
     if($FMVSTT) {
 
-        # $Saida = '.\Output\TS_STT'
-        $Saida = 'D:\Output\TS_STT'
+        $Saida = '.\Output\TS_STT2'
+        # $Saida = 'D:\Output\TS_STT'
         Iterator $Entrada $Sobre -Call $function:FMVSTT $Saida
 
     }
