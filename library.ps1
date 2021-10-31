@@ -428,7 +428,6 @@ function FMVVideo {
         }
     }
 }
-#teste
 function FMVAudio {
     param($in,$out, $params)
     

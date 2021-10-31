@@ -49,17 +49,7 @@ Measure-Command {
         $Parametros = '-debug' #-replace -debug -remove
         Iterator $Entrada $Sobre -Call $function:FMVData $Saida $Parametros
 
-        # $Entrada = '.\Output\TS_Dados3'
-        # $Sobre = '*.bin'
-        # $Saida = '.\Output\TS_Dados4'
-        # Iterator $Entrada $Sobre -Call $function:ConvertJSON $Saida
     }
 
 }
-
-
-
-# ffmpeg -i .\Data\2020\DRL\LTCHPFDI_LTCAMFDI_T0229.ts -vn -ac 1 .\Output\TESTE\Issoai.wav -y 2>&1 | Select-String -Pattern 'time=(.*?)bit.*?speed=([\s0-9]+)x' -AllMatches | ForEach-Object { Write-Progress $_}
-
-# SpikeRemove 'D:\Output\TS_STT\2020\DRL\LTCHPFDI_LTCAMFDI_T0229.ts\LTCHPFDI_LTCAMFDI_T0229#3584.95#3585_mono.wav' 'D:\Output\Aqui.wav'
 
