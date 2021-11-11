@@ -8,7 +8,7 @@ $libpath = $directorypath + "\library.ps1"
 
 #Mede o tempo da execução da varredura
 Measure-Command {
-
+#apenas um teste
     $FMVVideo = 0
     $FMVAudio = 0
     $FMVSTT   = 1
