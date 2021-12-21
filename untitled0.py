@@ -1,24 +1,35 @@
+# %% [markdown]
+#Carrega Módulos
 #Author Pedro Tancredo
 import subprocess
 import re 
-# import os
+import os
 import pandas as pd
 import datetime
+import glob
 
 def get_length(filename):
     result = subprocess.run(["ffprobe",filename],stdout=subprocess.PIPE, text=True, stderr=subprocess.STDOUT)
 
     
-    if re.search('Duration: (.*?),.*?bitrate: (.*?) kb',result.stdout) is None:
+    if re.search('(?s)Duration:\s*(.*?),.*?bitrate:\s*(.*?)\s*kb\/s\n',result.stdout) is None:
         return('Erro')
     else:
         rs = re.search('Duration: (.*?),.*?bitrate: (.*?) kb',result.stdout)
         return rs.group(1), rs.group(2)
                 
+#%%
+#Parâmetros
+InputPath  = r'Y:/'
+OutputPath = r'Z:/'
 
 #%%
-import glob
-my_path = r'Y:/'
+#Entrada
+my_path = InputPath
+filests = glob.glob(my_path + '/**/*.ts', recursive=True)
+#%%
+#Saída
+my_path = OutputPath
 filesmp4 = glob.glob(my_path + '/**/*.mp4', recursive=True)
 fileswav = glob.glob(my_path + '/**/*.wav', recursive=True)
 filesjson = glob.glob(my_path + '/**/*.json', recursive=True)
@@ -40,10 +51,10 @@ for i, file in enumerate(fileswav):
     print(durationwav[i],'--',rate)
 #%%
 # res = [sub.replace('4', '1') for sub in test_list]
-mp4 = [sub.replace('.mp4','').replace('Y://TS_videos\\','') for sub in filesmp4]
+mp4 = [sub.replace('.mp4','').replace('Z://TS_videos\\','') for sub in filesmp4]
 # indexmp4 = [sub. for sub in mp4]
 
-wav = [sub.replace('.wav','').replace('Y://TS_audios\\','') for sub in fileswav]
+wav = [sub.replace('.wav','').replace('Z://TS_audios\\','') for sub in fileswav]
 # indexwav = [sub for sub in wav]
 
 dfmp4 = pd.DataFrame(mp4)

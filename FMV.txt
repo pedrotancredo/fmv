@@ -1,0 +1,28 @@
+$('video')[0].currentTime
+
+https://polis.azureedge.net/mp4/{ANO}/{REGIONAL}/{DATA}/{FILENAME}#t={SHAPE_LENG}
+'<input type="button" style="width:100px" onclick="caminho = \'https://polis.azureedge.net/mp4/'+$feature.ANO+'/'+$feature.REGIONAL+'/'+$feature.DATA+'/'+$feature.FILENAME+'#t='+$feature.DURATION+'\';$(\'video\')[0].src=caminho;" value="Reproduzir" />'
+
+ontimeupdate="console.log($('video')[0].currentTime);"
+
+$('video')[0].ontimeupdate="console.log($('video')[0].currentTime);"
+
+
+1: var vid = document.getElementsByTagName('video')[0];
+2: function getTime(){console.log(vid.currentTime)};
+3: vid.addEventListener('timeupdate',getTime);
+
+
+function getTime(){console.log(document.getElementsByTagName('video')[0].currentTime)};document.getElementsByTagName('video')[0].addEventListener('timeupdate',getTime);
+
+
+var something = (function() {var executed = false;return function() {if (!executed) {executed = true;console.log('rodei tá')}};})();
+
+var something = (function() {var executed = false;return function() {if (!executed) {executed = true;function getTime(){console.log(document.getElementsByTagName('video')[0].currentTime)};document.getElementsByTagName('video')[0].addEventListener('timeupdate',getTime);}};})();something();
+
+'<input type="button" onclick="var doneTheStuff;function whatever(){if(!doneTheStuff){doneTheStuff = true;function getTime(){console.log(document.getElementsByTagName(\'video\')[0].currentTime)};document.getElementsByTagName(\'video\')[0].addEventListener(\'timeupdate\',getTime);}}whatever();">'
+
+var doneTheStuff;function whatever(){if(!doneTheStuff){doneTheStuff = true;function getTime(){console.log(document.getElementsByTagName('video')[0].currentTime)};document.getElementsByTagName('video')[0].addEventListener('timeupdate',getTime);}}whatever();
+
+something(); // "do something" happens
+something(); // nothing happen

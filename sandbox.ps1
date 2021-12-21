@@ -8,24 +8,25 @@ $libpath = $directorypath + "\library.ps1"
 
 #Mede o tempo da execução da varredura
 Measure-Command {
-#apenas um teste
+    #apenas um teste
     $FMVVideo = 0
     $FMVAudio = 0
-    $FMVSTT   = 1
-    $FMVData  = 0
+    $FMVSTT = 1
+    $FMVData = 0
        
     # $Entrada = 'Z:\'
+    #$Entrada = '.\Data\'
     $Entrada = '.\Data\'
     $Sobre = '*.ts'
 
-    if($FMVVideo) {
+    if ($FMVVideo) {
 
         $Saida = '.\Output\TS_Video'
         Iterator $Entrada $Sobre -Call $function:ExtractAudio $Saida
     
     }
     
-    if($FMVAudio) {
+    if ($FMVAudio) {
         
         $Saida = '.\Output\TS_audios2021'
         # $Saida = 'Y:\TS_audios'
@@ -34,15 +35,15 @@ Measure-Command {
 
     }
 
-    if($FMVSTT) {
+    if ($FMVSTT) {
 
-        $Saida = '.\Output\TS_STT2'
+        $Saida = '.\Output\TS_STT-REGEX'
         # $Saida = 'D:\Output\TS_STT'
         Iterator $Entrada $Sobre -Call $function:FMVSTT $Saida
 
     }
 
-    if($FMVData) {
+    if ($FMVData) {
     
         # $Saida = '.\Output\TS_Dados'
         $Saida = 'Y:\TS_dados'
