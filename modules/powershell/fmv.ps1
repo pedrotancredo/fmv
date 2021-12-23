@@ -87,22 +87,32 @@ function FMVData {
 
 function FMVSTT {
     param($InputRootFile, $OutputRootPath)
+
+    $Exists = Test-Path -Path $OutputRootPath
+    $Replace = $Params -Like '*-replace*'
+    
+    if ($Replace -or (-not $Exists)) {
         
-    SplitAudio $InputRootFile ($OutputRootPath + '_mono')
+        SplitAudio $InputRootFile ($OutputRootPath + '_mono')
        
-    $Entrada = $OutputRootPath + '_mono'
-    $Sobre = '*.wav'
-    $Saida = $OutputRootPath
+        $Entrada = $OutputRootPath + '_mono'
+        $Sobre = '*.wav'
+        $Saida = $OutputRootPath
    
-    Iterator $Entrada $Sobre -Call $function:FMVAudio $Saida
+        Iterator $Entrada $Sobre -Call $function:FMVAudio $Saida
 
-    Remove-Item -LiteralPath $Entrada -Force -Recurse
+        Remove-Item -LiteralPath $Entrada -Force -Recurse
 
-    Get-ChildItem -Recurse -Path $Saida -File -Include *.wav | ForEach-Object -Process {
-        $NewName = ($_.BaseName).Replace('.wav', '')
-        Rename-Item -Path $_.FullName -NewName ($NewName + '.wav')
+        Get-ChildItem -Recurse -Path $Saida -File -Include *.wav | ForEach-Object -Process {
+            $NewName = ($_.BaseName).Replace('.wav', '')
+            Rename-Item -Path $_.FullName -NewName ($NewName + '.wav')
+        }
     }
+    else {
 
+        Write-Host "Diretorio existente, sem parametro substituir."
+        Write-Host "Nada a ser feito."
+    }
 
     
 }

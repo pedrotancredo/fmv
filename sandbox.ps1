@@ -1,5 +1,5 @@
 $directorypath = Split-Path $MyInvocation.MyCommand.Path
-# Set-Location -Path $directorypath
+Set-Location -Path $directorypath
 $libpath = $directorypath + "\modules\import.ps1"
 . $libpath
 
@@ -8,7 +8,7 @@ $libpath = $directorypath + "\modules\import.ps1"
 # Mede o tempo da execução da varredura
 Measure-Command {
     #apenas um teste
-    $FMVVideo = 1
+    $FMVVideo = 0
     $FMVAudio = 0
     $FMVSTT = 1
     $FMVData = 0
@@ -16,6 +16,7 @@ Measure-Command {
     # $Entrada = 'Z:\'
     # $Entrada = '.\Data\'
     $Entrada = '.\test\input\'
+    # $Entrada = 'X:\'
     $Sobre = '*.ts'
 
     if ($FMVVideo) {
@@ -36,7 +37,7 @@ Measure-Command {
 
     if ($FMVSTT) {
 
-        $Saida = '.\test\output\TS_stt\'
+        $Saida = '.\test\output\TS_stt3\'
         # $Saida = 'D:\Output\TS_STT2'
         Iterator $Entrada $Sobre -Call $function:FMVSTT $Saida
 
@@ -52,4 +53,3 @@ Measure-Command {
     }
 
 }
-

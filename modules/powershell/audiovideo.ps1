@@ -256,51 +256,76 @@ function EnhanceAudio {
 
 function SplitAudio {
 
-    param($in, $out)
-    Write-Host 'Fatiando audio...'
+    param($InputFilePath, $OutputDirectoryPath)
+ 
+    Write-Host 'Procurando por trechos de fala no arquivo de entrada...'
+    if (Test-Path -Path $InputFilePath -PathType Leaf) {
 
-    if (Test-Path -Path $in -PathType Leaf) {
-        $dir = (Get-Item $in).DirectoryName
-        $base = (Get-Item $in).Basename
-        $file = $dir + '\' + (Get-Item $in).Basename
-        $ext = (Get-Item $in).Extension
+        $InputFilename = (Get-Item $InputFilePath).Basename
+        $Extension = (Get-Item $InputFilePath).Extension
         
-        $duration = 2       #Duração mínima para trecho ser considerado como silêncio
-        $threshold = -60    #Valor mínimo de volume para trecho ser considerado como silêncio
-        $ext = '.wav'
-                   
-        #Utiliza a silencedetect para mapear no vetor todas as posições para realizar os cortes,
-        #a entrada em wav aumenta drásticamente o desempenho
+        $MinimumSilenceDuration = 2     # Duração mínima, em segundos, para trecho ser considerado como silêncioso
+        $SilenceThreshold = -60         # Valor mínimo de volume para trecho ser considerado como silêncio
+        $MinimumSliceDuration = 1       # Valor mínimo de duração, em segundos, para o trecho ser considerado válido
+        $Extension = '.wav'             # Extensão dos arquivos de saída
 
-        $aStart = @(); $aEnd = @()
+        # Utiliza a silencedetect para mapear no vetor todas as posições para realizar os cortes,
+        $SilenceStart = @(); $SilenceEnd = @()
+        $Regex = @("Duration:\s*(\d*):(\d*):(\d*\.\d*),", "silence_end:\s*(\d*\.*\d*)\s*.*silence_duration:\s*(\d*\.*\d*)", "time=([0-9]*):([0-9]*)\:([0-9]*.[0-9]*)")
 
-        ffmpeg -hide_banner -vn -i $in -af "silencedetect=n=$($threshold)dB:d=$($duration)" -ac 1 -f null - 2>&1 |
-        Select-String -Pattern "silence_end:\s*([0-9]*\.*[0-9]*)\s*.*silence_duration:\s*([0-9]*\.*[0-9]*)"  -AllMatches |
-        ForEach-Object {$aStart+= [double]$_.Matches.Groups[1].Value; $aEnd+= $_.Matches.Groups[1].Value-$_.Matches.Groups[2].Value}
-        
-        $aEnd = $aEnd[1..($aEnd.Length - 1)]        #Expurta primeiro end
+        ffmpeg -hide_banner -vn -i $InputFilePath -af "silencedetect=n=$($SilenceThreshold)dB:d=$($MinimumSilenceDuration)" -ac 1 -f null - 2>&1 |
+        Select-String -Pattern $Regex -AllMatches |
+        ForEach-Object {
 
-        $aStart = $aStart[0..($aStart.Length - 2)]  #Expurga último start
+            if ( $_.Matches[0].Value -Match "silence_end") {
 
-        $newfolder = Split-Path $out -Leaf
+                $SilenceStart += [double]$_.Matches.Groups[1].Value
+                $SilenceEnd += $_.Matches.Groups[1].Value - $_.Matches.Groups[2].Value 
+            }
+            elseif ( $_.Matches[0].Value -Match "Duration") {
+                $TotalDuration = [Math]::Round([double]$_.Matches.Groups[1].Value * 60 + [double]$_.Matches.Groups[2].Value + [double]$_.Matches.Groups[3].Value / 60 , 2)
+            }
+            elseif ( $_.Matches[0].Value -Match "time") {
+                $Progress = [Math]::Round([double]$_.Matches.Groups[1].Value * 60 + [double]$_.Matches.Groups[2].Value + [double]$_.Matches.Groups[3].Value / 60 , 2)
+                $Current = "$($Progress)/$($TotalDuration)"
+                Write-Progress -Activity "Mapeando trechos..." -Status $Current -PercentComplete (($Progress / $TotalDuration) * 100)
 
-        $out2 = $out.Replace($newfolder, '')
+            }
+        }
 
-        If (!(Test-Path $out)) {
-            New-Item $out2 -Name $newfolder -ItemType "directory"
+        $Progress = $($TotalDuration)
+        $Current = "$($Progress)/$($TotalDuration)"
+        Write-Progress -Activity "Mapeando trechos..." -Status $Current -PercentComplete (($Progress / $TotalDuration) * 100)
+
+        $SilenceEnd = $SilenceEnd[1..($SilenceEnd.Length - 1)]        # Expurga primeiro end
+        $SilenceStart = $SilenceStart[0..($SilenceStart.Length - 2)]  # Expurga último start
+               
+        $OutputFolder = Split-Path $OutputDirectoryPath -Leaf
+
+        $ParentOutputFolder = $OutputDirectoryPath.Replace($OutputFolder, '')
+
+        If (!(Test-Path $OutputDirectoryPath)) {
+            New-Item $ParentOutputFolder -Name $OutputFolder -ItemType "directory"
         }
 
         # Divide os arquivos com base nos vetores mapeados
-        For ($i = 0; $i -lt $aStart.length ; $i++) {  
-            
-            $Duration = [double]$aEnd[$i] - [double]$aStart[$i]
+        Write-Host 'Gerando arquivos com os trechos de voz...'
 
-            if ($Duration -ge 1) {
-                # $name = $dir + '\' + $newfolder + '\' + $base + '_' + [string]$aStart[$i] + '_' + [string]$aEnd[$i] + $ext
-                $name = $out + '\' + $base + '#' + [string]$aStart[$i] + '#' + [string]$aEnd[$i] + $ext
-                ffmpeg -ss $aStart[$i] -i $in -t $Duration -c copy $name -y
+        $Count = 0
+
+        For ($i = 0; $i -lt $SilenceStart.Length ; $i++) {  
+
+            $Duration = [double]$SilenceEnd[$i] - [double]$SilenceStart[$i]          
+
+            if ($Duration -ge $MinimumSliceDuration) {
+
+                $OutputSlicePath = "$($OutputDirectoryPath)\$($InputFilename)#$([string]$SilenceStart[$i])#$([string]$SilenceEnd[$i])$($Extension)"
+                ffmpeg -ss $SilenceStart[$i] -i $InputFilePath -t $Duration -ac 1 $OutputSlicePath -y
+                $Count++
+
             }
-
         }
+
+        Write-Host "Foram gerados $($Count) arquivos com os trechos de voz validos."
     }
 }
