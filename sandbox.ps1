@@ -8,13 +8,13 @@ $libpath = $directorypath + "\modules\import.ps1"
 # Mede o tempo da execução da varredura
 Measure-Command {
     #apenas um teste
-    $FMVVideo = 0
+    $FMVVideo = 1
     $FMVAudio = 0
-    $FMVSTT = 0
-    $FMVData = 1
+    $FMVSTT = 1
+    $FMVData = 0
        
     # $Entrada = 'Z:\'
-    #$Entrada = '.\Data\'
+    # $Entrada = '.\Data\'
     $Entrada = '.\test\input\'
     $Sobre = '*.ts'
 
@@ -36,8 +36,8 @@ Measure-Command {
 
     if ($FMVSTT) {
 
-        $Saida = '.\test\output\TS_stt'
-        # $Saida = 'D:\Output\TS_STT'
+        $Saida = '.\test\output\TS_stt\'
+        # $Saida = 'D:\Output\TS_STT2'
         Iterator $Entrada $Sobre -Call $function:FMVSTT $Saida
 
     }

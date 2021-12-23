@@ -86,22 +86,13 @@ function FMVData {
 }
 
 function FMVSTT {
-    param($in, $out)
-    
-    $ext = (Get-Item $in).Extension
-    $temp = $out.Substring(0, $out.Length - $ext.Length) 
-
-    ExtractAudio $in $temp
-
-    $temp = $temp + '.wav'
-
-    SplitAudio $temp ($out + '_mono')
-    
-    Remove-Item $temp
-    
-    $Entrada = $out + '_mono'
+    param($InputRootFile, $OutputRootPath)
+        
+    SplitAudio $InputRootFile ($OutputRootPath + '_mono')
+       
+    $Entrada = $OutputRootPath + '_mono'
     $Sobre = '*.wav'
-    $Saida = $out
+    $Saida = $OutputRootPath
    
     Iterator $Entrada $Sobre -Call $function:FMVAudio $Saida
 

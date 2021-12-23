@@ -267,20 +267,20 @@ function SplitAudio {
         
         $duration = 2       #Duração mínima para trecho ser considerado como silêncio
         $threshold = -60    #Valor mínimo de volume para trecho ser considerado como silêncio
+        $ext = '.wav'
                    
         #Utiliza a silencedetect para mapear no vetor todas as posições para realizar os cortes,
         #a entrada em wav aumenta drásticamente o desempenho
 
         $aStart = @(); $aEnd = @()
 
-        ffmpeg -hide_banner -i $in -af "silencedetect=n=$($threshold)dB:d=$($duration)" -f null - 2>&1 `
-        | Select-String -Pattern "silence_end:\s*([0-9]*\.*[0-9]*)\s*.*silence_duration:\s*([0-9]*\.*[0-9]*)"  -AllMatches `
-        | ForEach-Object {$aStart+= [double]$_.Matches.Groups[1].Value; $aEnd+= $_.Matches.Groups[1].Value-$_.Matches.Groups[2].Value}
-                  
-        #Expurta primeiro end
-        $aEnd = $aEnd[1..($aEnd.Length - 1)]
-        #Expurga último start
-        $aStart = $aStart[0..($aStart.Length - 2)]
+        ffmpeg -hide_banner -vn -i $in -af "silencedetect=n=$($threshold)dB:d=$($duration)" -ac 1 -f null - 2>&1 |
+        Select-String -Pattern "silence_end:\s*([0-9]*\.*[0-9]*)\s*.*silence_duration:\s*([0-9]*\.*[0-9]*)"  -AllMatches |
+        ForEach-Object {$aStart+= [double]$_.Matches.Groups[1].Value; $aEnd+= $_.Matches.Groups[1].Value-$_.Matches.Groups[2].Value}
+        
+        $aEnd = $aEnd[1..($aEnd.Length - 1)]        #Expurta primeiro end
+
+        $aStart = $aStart[0..($aStart.Length - 2)]  #Expurga último start
 
         $newfolder = Split-Path $out -Leaf
 
@@ -302,7 +302,5 @@ function SplitAudio {
             }
 
         }
-
-        Remove-Item ($file + '_silencedetect.txt')
     }
 }

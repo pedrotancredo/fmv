@@ -18,45 +18,38 @@ function ForceResolvePath {
     return $FileName
 }
 function Iterator {
-    param($InputRootPath, $Extension, [scriptblock]$Call, $OutputRootPah, $Params)
+    param($InputRootPath, $Extension, [scriptblock]$Call, $OutputRootPath, $Params)
+       
+    #Cria o diretório raiz da saída no caso dele não existir
+    if (-Not (Test-Path -Path $OutputRootPath)) { mkdir $OutputRootPath }
     
-    $AbsoluteRootPath = Convert-Path $InputRootPath
-    
-    #verifica se já existe. Se não, cria
-    if (-Not (Test-Path -Path $OutputRootPah)) {
-        mkdir $OutputRootPah
-    }
+    $AbsoluteInputRootPath = Convert-Path $InputRootPath.TrimEnd('\')
+    $AbsoluteOutputRootPath = Convert-Path $OutputRootPath.TrimEnd('\')
         
-    #itera a lista de arquivos na pasta e cria pasta se arquivo atender ao critério de tipo
-    Get-ChildItem -Recurse -Path $InputRootPath -File -Include $Extension | ForEach-Object -Process {
+    #Itera recursivamente, executando a função informada em $Call, sobre os arquivos no diretório raiz da entrada que atendam ao critério de extensão 
+    Get-ChildItem -Recurse -Path $AbsoluteInputRootPath -File -Include $Extension | ForEach-Object -Process {
             
         Write-Host "------------------------------------"
         Write-Host "Arquivo a ser processado: $($_.Name)"
-        if ($AbsoluteRootPath.Substring($AbsoluteRootPath.Length - 1, 1) -eq '\') {
-            $AbsoluteRootPath.Substring($AbsoluteRootPath.Length - 1, 1)
-            $AbsoluteRootPath = $AbsoluteRootPath.Substring(0, $AbsoluteRootPath.Length - 1)
-        }
 
-        $AbsoluteRootPath = $AbsoluteRootPath.TrimEnd('/')
-        $OutputRootPah = $OutputRootPah.TrimEnd('/')
-
-        $sub = ($_.FullName).Replace($AbsoluteRootPath, '')
-        $dir = ($_.DirectoryName).Replace($AbsoluteRootPath, '')
-        $destinovideo = $OutputRootPah + $sub
+        $ItemRelativeDirectoryPath = $_.DirectoryName.Replace($AbsoluteInputRootPath, '')
+        $ItemAbsoluteDirectoryPath = $AbsoluteOutputRootPath + $ItemRelativeDirectoryPath
         
-        $dir = $OutputRootPah + $dir + '\' 
-        
-        #verifica se já existe. Se não, cria
-        if (-Not (Test-Path -Path $dir)) {
-            Write-Host "Criando pasta: $($dir)"
-            New-Item -ItemType directory -Path $dir
+        #Cria o diretório do item no caso dele não existir
+        if (-Not (Test-Path -Path $ItemAbsoluteDirectoryPath)) {
+            Write-Host "Criando pasta: $($ItemAbsoluteDirectoryPath)"
+            New-Item -ItemType directory -Path $ItemAbsoluteDirectoryPath
         }
         else {
-            Write-Host "Pasta $($dir) ja criada"
+            Write-Host "Pasta $($ItemAbsoluteDirectoryPath) ja criada"
         }
 
-        $arquivoorigem = $_.FullName;
-        $arquivodestino = $destinovideo;
-        $Call.Invoke($arquivoorigem, $arquivodestino, $Params)
+        #Define as chamadas de $Call
+        $ItemInput = $_.FullName;
+        $ItemRelativeFilePath = ($_.FullName).Replace($AbsoluteInputRootPath, '')
+        $ItemOutput = $AbsoluteOutputRootPath + $ItemRelativeFilePath
+        
+
+        $Call.Invoke($ItemInput, $ItemOutput, $Params)
     }	                        
 }
