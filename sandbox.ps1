@@ -10,8 +10,8 @@ Measure-Command {
     #apenas um teste
     $FMVVideo = 0
     $FMVAudio = 0
-    $FMVSTT = 1
-    $FMVData = 0
+    $FMVSTT = 0
+    $FMVData = 1
        
     # $Entrada = 'Z:\'
     #$Entrada = '.\Data\'

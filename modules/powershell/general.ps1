@@ -18,29 +18,33 @@ function ForceResolvePath {
     return $FileName
 }
 function Iterator {
-    param($Inlet, $Extension, [scriptblock]$Call, $Outlet, $Params)
+    param($InputRootPath, $Extension, [scriptblock]$Call, $OutputRootPah, $Params)
     
-    $Origem = Convert-Path $Inlet
+    $AbsoluteRootPath = Convert-Path $InputRootPath
     
     #verifica se já existe. Se não, cria
-    if (-Not (Test-Path -Path $Outlet)) {
-        mkdir $Outlet
+    if (-Not (Test-Path -Path $OutputRootPah)) {
+        mkdir $OutputRootPah
     }
         
     #itera a lista de arquivos na pasta e cria pasta se arquivo atender ao critério de tipo
-    Get-ChildItem -Recurse -Path $Inlet -File -Include $Extension | ForEach-Object -Process {
+    Get-ChildItem -Recurse -Path $InputRootPath -File -Include $Extension | ForEach-Object -Process {
             
-        Write-Host "------------------------------------------------------------------------------------------------------"
+        Write-Host "------------------------------------"
         Write-Host "Arquivo a ser processado: $($_.Name)"
-        if ($Origem.Substring($Origem.Length - 1, 1) -eq '\') {
-            $Origem.Substring($Origem.Length - 1, 1)
-            $Origem = $Origem.Substring(0, $Origem.Length - 1)
+        if ($AbsoluteRootPath.Substring($AbsoluteRootPath.Length - 1, 1) -eq '\') {
+            $AbsoluteRootPath.Substring($AbsoluteRootPath.Length - 1, 1)
+            $AbsoluteRootPath = $AbsoluteRootPath.Substring(0, $AbsoluteRootPath.Length - 1)
         }
-        $sub = ($_.FullName).Replace($Origem, '')
-        $dir = ($_.DirectoryName).Replace($Origem, '')
-        $destinovideo = $Outlet + $sub
+
+        $AbsoluteRootPath = $AbsoluteRootPath.TrimEnd('/')
+        $OutputRootPah = $OutputRootPah.TrimEnd('/')
+
+        $sub = ($_.FullName).Replace($AbsoluteRootPath, '')
+        $dir = ($_.DirectoryName).Replace($AbsoluteRootPath, '')
+        $destinovideo = $OutputRootPah + $sub
         
-        $dir = $Outlet + $dir + '\' 
+        $dir = $OutputRootPah + $dir + '\' 
         
         #verifica se já existe. Se não, cria
         if (-Not (Test-Path -Path $dir)) {

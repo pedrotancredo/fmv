@@ -20,7 +20,7 @@ function ConvertJSON {
     # Write-Host "Esse comando terá como saída um arquivo JSON com todos os dados extraidos do arquivo binário .TS"
     if ($arquivo -and $arquivodestino) {
         # python .\metadataToJsonDistinctLatLongValueOnly.py ($arquivo + '.bin') $arquivodestino
-        python .\metadataToJsonDistinctLatLongValueOnly.py $($arquivo) $($arquivodestino)
+        python .\modules\python\klv2json.py $($arquivo) $($arquivodestino)
         #python C:\ScriptsPowerShell\metadataToJson.py $arquivo $arquivodestino
     } 
     else {
