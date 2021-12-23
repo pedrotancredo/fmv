@@ -1,12 +1,11 @@
-
 $directorypath = Split-Path $MyInvocation.MyCommand.Path
-Set-Location -Path $directorypath
-$libpath = $directorypath + "\library.ps1"
+# Set-Location -Path $directorypath
+$libpath = $directorypath + "\modules\import.ps1"
 . $libpath
 
-#Import-Module ".\library.psm1"
+# Import-Module ".\library.psm1"
 
-#Mede o tempo da execução da varredura
+# Mede o tempo da execução da varredura
 Measure-Command {
     #apenas um teste
     $FMVVideo = 0
@@ -16,19 +15,19 @@ Measure-Command {
        
     # $Entrada = 'Z:\'
     #$Entrada = '.\Data\'
-    $Entrada = '.\Data\'
+    $Entrada = '.\test\input\'
     $Sobre = '*.ts'
 
     if ($FMVVideo) {
 
-        $Saida = '.\Output\TS_Video'
-        Iterator $Entrada $Sobre -Call $function:ExtractAudio $Saida
+        $Saida = '.\test\output\TS_videos'
+        Iterator $Entrada $Sobre -Call $function:FMVVideo $Saida
     
     }
     
     if ($FMVAudio) {
         
-        $Saida = '.\Output\TS_audios2021'
+        $Saida = '.\test\output\TS_audios'
         # $Saida = 'Y:\TS_audios'
         $Parametros = '-debug' #-replace -debug -remove
         Iterator $Entrada $Sobre -Call $function:FMVAudio $Saida $Parametros
@@ -37,7 +36,7 @@ Measure-Command {
 
     if ($FMVSTT) {
 
-        $Saida = '.\Output\TS_STT-REGEX'
+        $Saida = '.\test\output\TS_stt'
         # $Saida = 'D:\Output\TS_STT'
         Iterator $Entrada $Sobre -Call $function:FMVSTT $Saida
 
@@ -46,7 +45,7 @@ Measure-Command {
     if ($FMVData) {
     
         # $Saida = '.\Output\TS_Dados'
-        $Saida = 'Y:\TS_dados'
+        $Saida = '.\test\output\TS_dados'
         $Parametros = '-debug' #-replace -debug -remove
         Iterator $Entrada $Sobre -Call $function:FMVData $Saida $Parametros
 

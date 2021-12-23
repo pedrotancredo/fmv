@@ -13,8 +13,8 @@ function FMVFrames {
 
 }
 
-foreach ($line in Get-Content .\string.txt) {
-    #$In, $Out, $Start, $Duration = "Y:\2019\DRB\19-10-22\LTSMANIQ1_T0218_T0061.ts", "Output\TS_frames\bar#%03d.jpeg", "00:10:07", "00:01:02"
-    $In, $Out, $Start, $Duration = Invoke-Expression $line
-    FMVFrames $In $Out $Start $Duration
-}
+# foreach ($line in Get-Content .\string.txt) {
+#     #$In, $Out, $Start, $Duration = "Y:\2019\DRB\19-10-22\LTSMANIQ1_T0218_T0061.ts", "Output\TS_frames\bar#%03d.jpeg", "00:10:07", "00:01:02"
+#     $In, $Out, $Start, $Duration = Invoke-Expression $line
+#     FMVFrames $In $Out $Start $Duration
+# }
