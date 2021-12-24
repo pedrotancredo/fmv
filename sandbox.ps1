@@ -39,7 +39,7 @@ Measure-Command {
 
         $Saida = '.\test\output\TS_trechos\'
         # $Saida = 'D:\Output\TS_STT2'
-         $Parametros = '' #-replace -debug -remove
+        $Parametros = '' #-replace -debug -remove
         Iterator $Entrada $Sobre -Call $function:FMVSlice $Saida $Parametros
 
     }

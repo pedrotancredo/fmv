@@ -105,10 +105,9 @@ function FMVSlice {
     $Replace = $Params -Like '*-replace*'
     
     if ($Replace -or (-not $Exists)) {
-       
-        if ($Exists) {
-            Remove-Item -LiteralPath $OutputDirectoryPath -Force -Recurse
-        }
+
+        # Apaga, no caso de existirem arquivos anteriores 
+        Remove-Item -LiteralPath $OutputDirectoryPath -Force -Recurse
 
         # Gera arquivos de trechos de voz
         $Temp = $OutputDirectoryPath + '_temp'        
