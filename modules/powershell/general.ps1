@@ -37,8 +37,8 @@ function Iterator {
         
     }
     
-    $AbsoluteInputRootPath = Convert-Path $InputRootPath.TrimEnd('\')
-    $AbsoluteOutputRootPath = Convert-Path $OutputRootPath.TrimEnd('\')
+    $AbsoluteInputRootPath = (Convert-Path $InputRootPath).TrimEnd('\')
+    $AbsoluteOutputRootPath = (Convert-Path $OutputRootPath).TrimEnd('\')
 
     Get-ChildItem -Recurse -Path $AbsoluteInputRootPath -File -Include $Extension | ForEach-Object -Process {
 
@@ -53,10 +53,11 @@ function Iterator {
             Write-Host "Criando diretorio: $($ItemAbsoluteDirectoryPath)"
             New-Item -ItemType Directory -Path $ItemAbsoluteDirectoryPath
         }
-
+        
         # Define as chamadas de $Call
         $ItemInput = $_.FullName;
-        $ItemOutput = $AbsoluteOutputRootPath + $_.FullName.Replace($AbsoluteInputRootPath, '')
+        $OutputRelativePath = $_.FullName.Replace($AbsoluteInputRootPath, '')
+        $ItemOutput = $AbsoluteOutputRootPath + $OutputRelativePath
 
         $Call.Invoke($ItemInput, $ItemOutput, $Params)
     }	                        
