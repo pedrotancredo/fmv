@@ -18,21 +18,21 @@ function ExtractAudio {
 }
 function SpikeRemove {
     
-    param($in, $out)
+    param($InputFilePath, $OutputFilePath)
 
     Write-Host "Removendo picos..."       
     
-    if (Test-Path -Path $in -PathType Leaf) {
+    if (Test-Path -Path $InputFilePath -PathType Leaf) {
         
         # $file = (Get-Item $in).DirectoryName + '\' + (Get-Item $in).Basename
-        $temp = $out.Substring(0, $out.Length - $ext.Length) 
+        $temp = $OutputFilePath.Substring(0, $OutputFilePath.Length - $ext.Length) 
         $file = ForceResolvePath($temp)
-        $ext = (Get-Item $in).Extension
-        $outfile = ForceResolvePath $out
+        $ext = (Get-Item $InputFilePath).Extension
+        $outfile = ForceResolvePath $OutputFilePath
             
         #Cria um arquivo temporário para análise dos picos utilizando lowpass
         $lowpass = 20
-        ffmpeg -i $in -af "lowpass=f=$($lowpass)" $file'_lowpass'$ext -y
+        ffmpeg -i $InputFilePath -af "lowpass=f=$($lowpass)" $file'_lowpass'$ext -y
         
         #Análise da sonoridade do arquivo lowpass
         ffmpeg -i $file'_lowpass'$ext -hide_banner -nostats -af 'loudnorm=I=-16:TP=-1.5:LRA=11:print_format=summary' -f null - 2>$file'_lowpass.txt' | Format -y 
@@ -141,7 +141,7 @@ function SpikeRemove {
             $laststep = $p % $stepsize
             $temppeak = $file + '_0_' + $ext
             # $temp = (Get-Item $in).BaseName + '_0_' + $ext
-            Copy-Item $in $temppeak
+            Copy-Item $InputFilePath $temppeak
             
     
             # Multiplos
@@ -200,7 +200,7 @@ function SpikeRemove {
         }
         else {
             # só poe a saida aki
-            Copy-Item $in $outfile
+            Copy-Item $InputFilePath $outfile
         }
         Remove-Item ($file + '_*')
     }
@@ -256,6 +256,16 @@ function EnhanceAudio {
 
 function SplitAudio {
 
+    # Divide um arquivo de entrada ($InputFilePath) em diversos trechos onde há alguma audio gravado utilizando informações obtidas da função silencedetect 
+    # do ffmpeg que gera dois vetores, sendo um contendo os tempos de início do silêncio ($SilenceStart) e outro os tempos de fim dos silêncios ($SilenceEnd)
+    # após a criação dos vetores a função cria o diretório onde serão armazenados os trechos com o nome do arquivo informado em ($InputFilePath) mas como
+    # filho de ($OutputDirectoryPath). Por fim a função utiliza a instrução -ss do ffmpeg para extrair do ($InputFilePath) os trechos.
+
+    # Além dos argumentos de entrada a função contém os parâmetors: $MinimumSilenceDuration, $SilenceThreshold, $MinimumSliceDuration e $Extension.
+
+    #       $InputFilePath: Uma string contendo o caminho para um arquivo de entrada (pode ser absoluto ou relativo)
+    # $OutputDirectoryPath: Uma string contendo o caminho para o diretório onde serão salvos os diversos trechos de audio identificados
+
     param($InputFilePath, $OutputDirectoryPath)
  
     Write-Host 'Procurando por trechos de fala no arquivo de entrada...'
@@ -271,7 +281,7 @@ function SplitAudio {
 
         # Utiliza a silencedetect para mapear no vetor todas as posições para realizar os cortes,
         $SilenceStart = @(); $SilenceEnd = @()
-        $Regex = @("Duration:\s*(\d*):(\d*):(\d*\.\d*),", "silence_end:\s*(\d*\.*\d*)\s*.*silence_duration:\s*(\d*\.*\d*)", "time=([0-9]*):([0-9]*)\:([0-9]*.[0-9]*)")
+        $Regex = @("Duration:\s*(\d*):(\d*):(\d*\.\d*),", "silence_end:\s*(\d*\.*\d*)\s*.*silence_duration:\s*(\d*\.*\d*)", "time=(\d*):(\d*)\:(\d*.\d*)")
 
         ffmpeg -hide_banner -vn -i $InputFilePath -af "silencedetect=n=$($SilenceThreshold)dB:d=$($MinimumSilenceDuration)" -ac 1 -f null - 2>&1 |
         Select-String -Pattern $Regex -AllMatches |
@@ -305,7 +315,7 @@ function SplitAudio {
         $ParentOutputFolder = $OutputDirectoryPath.Replace($OutputFolder, '')
 
         If (!(Test-Path $OutputDirectoryPath)) {
-            New-Item $ParentOutputFolder -Name $OutputFolder -ItemType "directory"
+            New-Item $ParentOutputFolder -Name $OutputFolder -ItemType Directory
         }
 
         # Divide os arquivos com base nos vetores mapeados

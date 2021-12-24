@@ -32,8 +32,9 @@ function Iterator {
        
     # Cria o diretório raiz da saída no caso dele não existir
     if (-Not (Test-Path -Path $OutputRootPath)) { 
-        # mkdir $OutputRootPath
+
         New-Item -ItemType Directory -Path $OutputRootPath
+        
     }
     
     $AbsoluteInputRootPath = Convert-Path $InputRootPath.TrimEnd('\')
@@ -42,7 +43,8 @@ function Iterator {
     Get-ChildItem -Recurse -Path $AbsoluteInputRootPath -File -Include $Extension | ForEach-Object -Process {
 
         Write-Host "------------------------------------"
-        Write-Host "Arquivo a ser processado: $($_.Name)"
+        Write-Host "Arquivo a ser processado:"
+        Write-Host $($_.FullName)
 
         $ItemAbsoluteDirectoryPath = $AbsoluteOutputRootPath + $_.DirectoryName.Replace($AbsoluteInputRootPath, '')
         

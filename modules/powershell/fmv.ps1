@@ -85,20 +85,39 @@ function FMVData {
 
 }
 
-function FMVSTT {
-    param($InputRootFile, $OutputRootPath)
+function FMVSlice {
+    param($InputFilePath, $OutputDirectoryPath, $Params)
+    
+    # Divide o arquivo enviado ($InputFilePath) na entrada em trechos de voz salvos um diretório temporário através do uso da função SplitAudio.
+    # A seguir, aplica para cada um destes trechos, as operações de remoção de pico e melhoria do som contidas na função FMVAudio.
+    # Por fim os arquivos tratados são salvos no diretório de saída ($OutputDirectoryPath) e os arquivos temporários apagados.
 
-    $Exists = Test-Path -Path $OutputRootPath
+    #       $InputFilePath: Uma string contendo o caminho para o arquivo de entrada
+    # $OutputDirectoryPath: Uma string contendo o caminho onde serão salvos trechos de audio
+    #              $Params: Uma string contendo flags de parâmetros que alteram o funcionamento da função.
+    #                       Atualmente a única flag disponível para esse método é a -replace.
+    
+    #            - replace: Se utilizada a função removerá os arquivos gerados anteriormente e prosseguirá a criação de novos.
+
+    # No caso de nenhuma flag ser informada a função ignorará o arquivo de entrada se o diretório de saída já existir.
+
+    $Exists = Test-Path -Path $OutputDirectoryPath
     $Replace = $Params -Like '*-replace*'
     
     if ($Replace -or (-not $Exists)) {
-        
-        SplitAudio $InputRootFile ($OutputRootPath + '_mono')
        
-        $Entrada = $OutputRootPath + '_mono'
+        if ($Exists) {
+            Remove-Item -LiteralPath $OutputDirectoryPath -Force -Recurse
+        }
+
+        # Gera arquivos de trechos de voz
+        $Temp = $OutputDirectoryPath + '_temp'        
+        SplitAudio $InputFilePath $Temp
+       
+        # Remove picos do audio e amplifica voz
+        $Entrada = $Temp
         $Sobre = '*.wav'
-        $Saida = $OutputRootPath
-   
+        $Saida = $OutputDirectoryPath   
         Iterator $Entrada $Sobre -Call $function:FMVAudio $Saida
 
         Remove-Item -LiteralPath $Entrada -Force -Recurse

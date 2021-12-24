@@ -10,7 +10,7 @@ Measure-Command {
     #apenas um teste
     $FMVVideo = 0
     $FMVAudio = 0
-    $FMVSTT = 1
+    $FMVSlice = 1
     $FMVData = 0
        
     # $Entrada = 'Z:\'
@@ -34,12 +34,13 @@ Measure-Command {
         Iterator $Entrada $Sobre -Call $function:FMVAudio $Saida $Parametros
 
     }
+ 
+    if ($FMVSlice) {
 
-    if ($FMVSTT) {
-
-        $Saida = '.\test\output\TS_stt3\'
+        $Saida = '.\test\output\TS_trechos\'
         # $Saida = 'D:\Output\TS_STT2'
-        Iterator $Entrada $Sobre -Call $function:FMVSTT $Saida
+         $Parametros = '' #-replace -debug -remove
+        Iterator $Entrada $Sobre -Call $function:FMVSlice $Saida $Parametros
 
     }
 
