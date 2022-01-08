@@ -14,8 +14,8 @@ Measure-Command {
     $FMVData = 0
        
     # $Entrada = '.\Data\'
-    # $Entrada = '.\test\input\'
-    $Entrada = 'Y:\'
+    $Entrada = '.\test\input\'
+    # $Entrada = 'Y:\'
     $Sobre = '*.ts'
 
     if ($FMVVideo) {
@@ -36,8 +36,8 @@ Measure-Command {
  
     if ($FMVSlice) {
 
-        # $Saida = '.\test\output\TS_trechos2\'
-        $Saida = 'Z:\TS_trechos'
+        $Saida = '.\test\output\TS_trechos5\'
+        # $Saida = 'Z:\TS_trechos'
         $Parametros = '' #-replace -debug -remove
         Iterator $Entrada $Sobre -Call $function:FMVSlice $Saida $Parametros
 

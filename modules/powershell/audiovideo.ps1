@@ -297,14 +297,14 @@ function SplitAudio {
             }
             elseif ( $_.Matches[0].Value -Match "time") {
                 $Progress = [Math]::Round([double]$_.Matches.Groups[1].Value * 60 + [double]$_.Matches.Groups[2].Value + [double]$_.Matches.Groups[3].Value / 60 , 2)
-                $Current = "$($Progress)/$($TotalDuration)"
+                $Current = "$($Progress)/$($TotalDuration) | $($SilenceStart.Length-1) trechos identificados"
                 Write-Progress -Activity "Mapeando trechos..." -Status $Current -PercentComplete (($Progress / $TotalDuration) * 100)
 
             }
         }
 
         $Progress = $($TotalDuration)
-        $Current = "$($Progress)/$($TotalDuration)"
+        $Current = "$($Progress)/$($TotalDuration) | $($SilenceStart.Length-1) trechos identificados"
         Write-Progress -Activity "Mapeando trechos..." -Status $Current -PercentComplete (($Progress / $TotalDuration) * 100)
 
         $SilenceEnd = $SilenceEnd[1..($SilenceEnd.Length - 1)]        # Expurga primeiro end

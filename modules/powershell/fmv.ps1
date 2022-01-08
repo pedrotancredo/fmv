@@ -119,8 +119,10 @@ function FMVSlice {
         $Saida = $OutputDirectoryPath   
         Iterator $Entrada $Sobre -Call $function:FMVAudio $Saida
 
+        # Remove diretório que contém os arquivos temporários
         Remove-Item -LiteralPath $Entrada -Force -Recurse
 
+        # Renomeia os arquivos para o valor de saída
         Get-ChildItem -Recurse -Path $Saida -File -Include *.wav | ForEach-Object -Process {
             $NewName = ($_.BaseName).Replace('.wav', '')
             Rename-Item -Path $_.FullName -NewName ($NewName + '.wav')

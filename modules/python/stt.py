@@ -7,6 +7,8 @@ import csv
 import pandas as pd
 import time
 #%% Define funções
+
+
 def speech_to_text(wavfile_path):
     dados_arquivo = {'file': open(wavfile_path, 'rb')} 
     resultado = requests.post(url='https://sttdemo.cybervox.ai/api',  files=dados_arquivo)
@@ -16,22 +18,70 @@ def speech_to_text(wavfile_path):
     transcricao = transcricao_json['texto']            
     return transcricao
 
+
+# STT da Azure, configuração
+speech_key = "77a786d869364dfeb521c65d2db1b770"
+region=service_region = "brazilsouth"
+language = "pt-BR"
+profanity = speechsdk.ProfanityOption.Raw
+
 def from_file(audiofile):
-    speech_config = speechsdk.SpeechConfig(subscription="77a786d869364dfeb521c65d2db1b770", region="brazilsouth")
-    speech_config.speech_recognition_language="pt-BR"
-    speech_config.set_profanity(speechsdk.ProfanityOption.Raw)
-    #ProfanityOption(value)
-    #speechConfig.setProfanity(SpeechSDK.ProfanityOption.Raw);
+    """Transcreve um trecho de audio em texto a partir de um arquivo, ideal para arquivos pequenos"""
+
+    speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
+    speech_config.speech_recognition_language=language
+    speech_config.set_profanity(profanity)  
     audio_input = speechsdk.AudioConfig(filename=audiofile)
     speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_input)
 
-
     result = speech_recognizer.recognize_once_async().get()
-    #print(result.text)
     return result.text
 
+def speech_recognize_continuous_from_file(audiofile):
+    """Transcreve um trecho de audio de forma contínua a partir de um arquivo"""
+
+    # Parâmetros de configuração
+    speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
+    speech_config.speech_recognition_language=language  
+    speech_config.set_profanity(profanity)
+    audio_config = speechsdk.audio.AudioConfig(filename=audiofile)
+    speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_config)
+
+    # Definição das funções que são chamadas durante o disparo dos eventos
+    def stop(evt):
+        """Evento que encerra o reconhecimento de voz"""
+        speech_recognizer.stop_continuous_recognition()
+        nonlocal done
+        done = True
+  
+    def handle_final_result(evt):
+        nonlocal result
+        result.append(evt.result.text)
+
+    # Chamada dos eventos
+    speech_recognizer.recognized.connect(handle_final_result)
+    speech_recognizer.session_stopped.connect(stop)
+    speech_recognizer.canceled.connect(stop)
+
+    # Início do reconhecimento    
+    result = []
+    done = False
+
+    speech_recognizer.start_continuous_recognition()
+    while not done:
+        time.sleep(0.5)
+
+    # Converte lista de frases em string única
+    all_results = ' '.join([str(item) for item in result])
+
+    return all_results
+#%% Roda um pra teste
+
+single = r'Z:\TS_trechos\2019\DRB\19-10-02\LTGUPMIC_T0274_T0295_P1.ts\LTGUPMIC_T0274_T0295_P1#38.2844#81.587.wav'
+print(speech_recognize_continuous_from_file(single))
+
 #%% Gera lista de arquivos
-my_path = r'Z:\TS_STT'
+my_path = r'Z:\TS_trechos'
 fileswav = glob.glob(my_path + '/**/*.wav', recursive=True)
 
 #%% Grava lista de arquivos em csv
@@ -48,11 +98,6 @@ with open(input_list_path, 'w', newline='', encoding='utf-8') as stt_list:
 df_path = pd.read_csv(input_list_path, sep=';', encoding='utf-8', names = ['path'], header = None)
 
 #transcricaolist = [0]*len(fileswav)
-#%% Roda um pra teste
-
-single = r'Z:\TS_STT\2019\DRB\19-10-02\LTGUPMIC_T0274_T0295_P3.ts\LTGUPMIC_T0274_T0295_P3#133.956#152.997.wav'
-print(from_file(single))
-
 
 #%% Varre a lista de paths no dataframe incluíndo a coluna de transcrição
 
@@ -73,7 +118,7 @@ for i in range(len(df_path)-1):
         transcript_write.writerow(line)
     
     time.sleep(0.5)
-#transcricaolistazure = [0]*len(fileswav)
+transcricaolistazure = [0]*len(fileswav)
 #%% azure
 
 
@@ -86,37 +131,6 @@ for i, file in enumerate(fileswav):
     print('--------------------------------------------------------------------------------------------------------')
     
 
-
-#%% escreve em arquivo
-
-with open('data/censo', 'r') as f_in:
-    with open('output/g00.csv', 'w', newline='', encoding='utf-8') as out00, \
-         open('output/g10.csv', 'w', newline='', encoding='utf-8') as out10, \
-         open('output/g20.csv', 'w', newline='', encoding='utf-8') as out20, \
-         open('output/g30.csv', 'w', newline='', encoding='utf-8') as out30, \
-         open('output/g40.csv', 'w', newline='', encoding='utf-8') as out40, \
-         open('output/g50.csv', 'w', newline='', encoding='utf-8') as out50, \
-         open('output/g60.csv', 'w', newline='', encoding='utf-8') as out60:
-             
-        w00 = csv.writer(out00, escapechar='?',quoting=csv.QUOTE_NONE)
-        w10 = csv.writer(out10, escapechar='?',quoting=csv.QUOTE_NONE)
-        w20 = csv.writer(out20, escapechar='?',quoting=csv.QUOTE_NONE)
-        w30 = csv.writer(out30, escapechar='?',quoting=csv.QUOTE_NONE)
-        w40 = csv.writer(out40, escapechar='?',quoting=csv.QUOTE_NONE)
-        w50 = csv.writer(out50, escapechar='?',quoting=csv.QUOTE_NONE)
-        w60 = csv.writer(out60, escapechar='?',quoting=csv.QUOTE_NONE)
-
-        for line in f_in:
-            line = line.strip('\n')
-            #row = []
-            
-            group = line.split('|')[0]
-
-            if   group == '00':
-                w00.writerow([line])
-            elif group == '10':
-                w10.writerow([line])
-            elif group == '20':
 #%%
 for i, file in enumerate(fileswav):
     if i < 4390:
