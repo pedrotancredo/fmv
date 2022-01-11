@@ -10,7 +10,7 @@ Measure-Command {
     #apenas um teste
     $FMVVideo = 0
     $FMVAudio = 0
-    $FMVSlice = 1
+    $FMVSlice = 0
     $FMVData = 0
        
     # $Entrada = '.\Data\'
@@ -53,3 +53,8 @@ Measure-Command {
     }
 
 }
+$inputfile = "Z:\TS_trechos\2019\DRN\19-07-02\LTBFLCHP_LTCHPRSD_LTADRCHP.ts\LTBFLCHP_LTCHPRSD_LTADRCHP#13.47#29.79.wav"
+$outputfile = "Z:\TS_stt\2019\DRN\19-07-02\LTBFLCHP_LTCHPRSD_LTADRCHP.ts\LTBFLCHP_LTCHPRSD_LTADRCHP#13.47#29.79.txt"
+ExtractText $inputfile $outputfile
+
+# Itera sobre o diretório com a transcricao e procura arquivos que tenham a palavra esfera, considerando um preenchimento de 30s gere uma imagem por segundo destes trechos
