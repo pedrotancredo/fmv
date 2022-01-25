@@ -49,6 +49,7 @@ function SpikeRemove {
         | ForEach-Object { $_ -replace "dBTP", "|" } `
         | ForEach-Object { $_ -replace "\s+", "" } `
         | Where-Object { $_ -notmatch "size" } `
+        | ForEach-Object { $_ -replace "-inf", "-80" } `
         | Where-Object { $_ -notmatch "Summary" } `
         
         foreach ($element in $Extension) {
