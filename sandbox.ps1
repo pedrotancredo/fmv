@@ -12,6 +12,7 @@ Measure-Command {
     $FMVAudio = 0
     $FMVSlice = 0
     $FMVData = 0
+    $FMVSTT = 1
        
     # $Entrada = '.\Data\'
     $Entrada = '.\test\input\'
@@ -36,8 +37,8 @@ Measure-Command {
  
     if ($FMVSlice) {
 
-        # $Saida = '.\test\output\TS_trechos\'
-        $Saida = 'Z:\TS_trechos'
+        $Saida = '.\test\output\TS_trechos\'
+        # $Saida = 'Z:\TS_trechos'
         $Parametros = '' #-replace -debug -remove
         Iterator $Entrada $Sobre -Call $function:FMVSlice $Saida $Parametros
 
@@ -52,11 +53,21 @@ Measure-Command {
 
     }
 
+    if ($FMVSTT) {
+    
+        $Sobre = '*.wav'
+        $Entrada = '.\test\output\TS_trechos'
+        $Saida = '.\test\output\TS_transcricao'
+        $Parametros = '-debug' #-replace -debug -remove
+        Iterator $Entrada $Sobre -Call $function:FMVSTT $Saida $Parametros
+
+    }
+
 }
 # $inputfile = "Z:\TS_trechos\2019\DRN\19-07-02\LTBFLCHP_LTCHPRSD_LTADRCHP.ts\LTBFLCHP_LTCHPRSD_LTADRCHP#13.47#29.79.wav"
-# $inputfile =  "E:\OneDrive\Documentos\GitHub\fmv\test\output\TS_trechos\2020\DRQ\20-07-27\LTIABTPR2_T0122.ts\LTIABTPR2_T0122#1102.43#1126.3184.wav.wav"
+# $inputfile =  "E:\OneDrive\Documentos\GitHub\fmv\test\output\TS_trechos\2020\DRQ\20-07-27\LTIABTPR2_T0122.ts\LTIABTPR2_T0122#11.6467#20.9609.wav"
 # $outputfile = "Z:\TS_stt\2019\DRN\19-07-02\LTBFLCHP_LTCHPRSD_LTADRCHP.ts\LTBFLCHP_LTCHPRSD_LTADRCHP#13.47#29.79.txt"
-# $outputfile = "E:\OneDrive\Documentos\GitHub\fmv\test\output\TS_stt\2020\DRQ\20-07-27\LTIABTPR2_T0122.ts\LTIABTPR2_T0122#1102.43#1126.3184.txt"
+# $outputfile = "E:\OneDrive\Documentos\GitHub\fmv\test\output\TS_stt\2020\DRQ\20-07-27\LTIABTPR2_T0122.ts\LTIABTPR2_T0122#11.6467#20.9609.txt"
 # ExtractText $inputfile $outputfile
 
 # Itera sobre o diretório com a transcricao e procura arquivos que tenham a palavra esfera, considerando um preenchimento de 30s gere uma imagem por segundo destes trechos

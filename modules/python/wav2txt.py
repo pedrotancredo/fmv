@@ -8,7 +8,8 @@ if __name__ == "__main__":
     args = sys.argv
 
     # speech_key = "77a786d869364dfeb521c65d2db1b770"
-    speech_key = "5d6b626c06dd42bcaea8ca1b82e53fb7"
+    # speech_key = "5d6b626c06dd42bcaea8ca1b82e53fb7"
+    speech_key = "aa9591cfde1e418d99490bacb4786abd"
     region=service_region = "brazilsouth"
     language = "pt-BR"
     profanity = speechsdk.ProfanityOption.Raw

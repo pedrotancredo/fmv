@@ -136,3 +136,25 @@ function FMVSlice {
 
     
 }
+function FMVSTT {
+    param($in, $out, $params)
+
+    $ext = (Get-Item $in).Extension
+    $out = $out.Substring(0, $out.Length - $ext.Length)
+
+    $output = $out + '.txt'
+
+    $exists = Test-Path -Path $output
+    $replace = $params -Like '*-replace*'
+    
+    if ($replace -or (-not $exists)) {
+
+        ExtractText $in $output
+    
+    }
+    else {
+        Write-Host "Arquivo existente, sem parametro substituir."
+        Write-Host "Nada a ser feito."
+    }
+
+}

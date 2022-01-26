@@ -282,7 +282,7 @@ function SplitAudio {
 
         # Utiliza a silencedetect para mapear no vetor todas as posições para realizar os cortes,
         $SilenceStart = @(); $SilenceEnd = @()
-        $Regex = @("Duration:\s*(\d*):(\d*):(\d*\.\d*),", "silence_end:\s*(\d*\.*\d*)\s*.*silence_duration:\s*(\d*\.*\d*)", "time=(\d*):(\d*)\:(\d*.\d*)")
+        $Regex = @("Duration:\s*(.*?),","Duration:\s*(\d*):(\d*):(\d*\.\d*),", "silence_end:\s*(\d*\.*\d*)\s*.*silence_duration:\s*(\d*\.*\d*)", "time=(\d*):(\d*)\:(\d*.\d*)")
 
         ffmpeg -hide_banner -vn -i $InputFilePath -af "silencedetect=n=$($SilenceThreshold)dB:d=$($MinimumSilenceDuration)" -ac 1 -f null - 2>&1 |
         Select-String -Pattern $Regex -AllMatches |
@@ -294,7 +294,13 @@ function SplitAudio {
                 $SilenceEnd += $_.Matches.Groups[1].Value - $_.Matches.Groups[2].Value 
             }
             elseif ( $_.Matches[0].Value -Match "Duration") {
-                $TotalDuration = [Math]::Round([double]$_.Matches.Groups[1].Value * 60 + [double]$_.Matches.Groups[2].Value + [double]$_.Matches.Groups[3].Value / 60 , 2)
+                if ($_.Matches.Groups[1].Value -eq "N/A") {
+                    $TotalDuration = 240 #Duração fake para sistema rodar, só executa essa linha quando o retorno do ffmpeg for "N/A"
+                }
+                else {
+                    $TotalDuration = [Math]::Round([double]$_.Matches.Groups[1].Value * 60 + [double]$_.Matches.Groups[2].Value + [double]$_.Matches.Groups[3].Value / 60 , 2)                    
+                }
+                
             }
             elseif ( $_.Matches[0].Value -Match "time") {
                 $Progress = [Math]::Round([double]$_.Matches.Groups[1].Value * 60 + [double]$_.Matches.Groups[2].Value + [double]$_.Matches.Groups[3].Value / 60 , 2)
@@ -330,7 +336,9 @@ function SplitAudio {
 
             if ($Duration -ge $MinimumSliceDuration) {
 
-                $OutputSlicePath = "$($OutputDirectoryPath)\$($InputFilename)#$([string]$SilenceStart[$i])#$([string]$SilenceEnd[$i])$($Extension)"
+                $StartString = "{0:F2}" -f ($SilenceStart[$i]) -Replace ',','.'
+                $EndString = "{0:F2}" -f ($SilenceEnd[$i]) -Replace ',','.'
+                $OutputSlicePath = "$($OutputDirectoryPath)\$($InputFilename)#$($StartString)#$($EndString)$($Extension)"
                 ffmpeg -ss $SilenceStart[$i] -i $InputFilePath -t $Duration -ac 1 $OutputSlicePath -y
                 $Count++
 
