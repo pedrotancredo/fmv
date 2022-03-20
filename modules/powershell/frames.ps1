@@ -1,7 +1,7 @@
 #Transforma em string com casas fixas, mesmo se inteiro https://arcanecode.com/2021/07/19/fun-with-powershell-string-formatting/
 #"{0:n2}" -f [math]::Round($a,2)
 
-function FMVFrames {
+function FMVFrames3 {
     param($In, $Out)
     
     # O nome do arquivo contido na entrada deve possuir os separadores # indicando inicio e fim do trecho, ex.: "LTSMANIQ1_T0218_T0061#637.88#640.11.wav"

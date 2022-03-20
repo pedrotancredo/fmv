@@ -158,3 +158,57 @@ function FMVSTT {
     }
 
 }
+
+function FMVFrames {
+    param($In, $Out)
+
+    #Leitura do arquivo de texto com as informações sobre o volume
+    $Text = Get-Content $In
+
+    #Transformando as linhas do arquivo em um array
+    $Text.GetType() | Format-Table -AutoSize
+
+    #Listando as linhas do arquivo
+    #Aplicando substituições para leitura do arquivo de texto
+    # $Extension = $Text | ForEach-Object { $_ -replace "max_volume:", "|Max|" } `
+    # | ForEach-Object { $_ -replace "dB", "" } `
+    # | ForEach-Object { $_ -replace "\s+", "" } `
+    # | Where-Object { $_ -notmatch "size" } `
+    # | Where-Object { $_ -notmatch "Summary" } `
+
+
+
+    foreach ($element in $Text) { 
+        $item = $element.split(';')
+        $InputFile = $item[0]
+        $OutputFile =  $InputFile.Replace("Y:\","Z:\TS_frames\")
+        $Start = [double]$item[1]
+        $End = [double]$item[2]
+
+        $OutputFilePath = $OutputFile.Replace($OutputFile.Split('\')[-1],"")
+        
+        if (-Not (Test-Path -Path $OutputFilePath)) {
+            Write-Host "Criando diretorio: $($OutputFilePath)"
+            New-Item -ItemType Directory -Path $OutputFilePath
+        }
+        # O nome do arquivo contido na entrada deve possuir os separadores # indicando inicio e fim do trecho, ex.: "LTSMANIQ1_T0218_T0061#637.88#640.11.wav"
+    
+
+        # $Padding = 0            #Tempo extra adicionado ao início e ao fim do trecho específicado
+        $ImagesPerSecond = 1 / 5    #Quantidade de imagens por segundo
+
+
+        # $Start = [double]$NomeArquivo.Split('#')[1] - $Padding
+        # $End = [double]$NomeArquivo.Split('#')[2].Replace('.wav', '') + $Padding
+        $Duration = $End - $Start
+    
+        # https://stackoverflow.com/questions/21842175/convert-seconds-to-hhmmss-fff-format-in-powershell  
+        # $StartTime = ("{0:hh\:mm\:ss\.ff}" -F [Timespan]::FromSeconds($Start))
+
+        # Tive que usar um for normal para manter a rastreabilidade das imagens
+        For ($i = 0; $i -le [Math]::Ceiling($Duration * $ImagesPerSecond); $i++) {
+            $CurrentTime = "{0:f2}" -f ($Start + $i / $ImagesPerSecond) -Replace ',', '.'
+            ffmpeg -ss $CurrentTime -i $InputFile -vf "yadif=2" -frames:v 1 -qscale:v 1 -shortest "$($OutputFile)#$($CurrentTime).jpg" -y
+        }
+    }
+}
