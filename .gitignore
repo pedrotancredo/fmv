@@ -4,3 +4,9 @@ test/**/*.*
 *.ts
 *.jpeg
 *.mp4
+*.json
+*.stats
+*.csv
+*.bak
+*.xlsx
+*.txt
