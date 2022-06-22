@@ -20,7 +20,7 @@ def speech_to_text(wavfile_path):
 
 
 # STT da Azure, configuração
-speech_key = "77a786d869364dfeb521c65d2db1b770"
+speech_key = "aa9591cfde1e418d99490bacb4786abd"
 region=service_region = "brazilsouth"
 language = "pt-BR"
 profanity = speechsdk.ProfanityOption.Raw
@@ -77,8 +77,9 @@ def speech_recognize_continuous_from_file(audiofile):
     return all_results
 #%% Roda um pra teste
 
-single = r'Z:\TS_trechos\2019\DRB\19-10-02\LTGUPMIC_T0274_T0295_P1.ts\LTGUPMIC_T0274_T0295_P1#38.2844#81.587.wav'
-print(speech_recognize_continuous_from_file(single))
+single = r'Z:\TS_trechos\2019\DRB\19-10-02\LTGUPMIC_T0274_T0295_P1.ts\LTGUPMIC_T0274_T0295_P1#38.28#81.59.wav'
+out = speech_recognize_continuous_from_file(single)
+print(out)
 
 #%% Gera lista de arquivos
 my_path = r'Z:\TS_trechos'

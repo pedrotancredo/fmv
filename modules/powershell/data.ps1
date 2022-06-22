@@ -21,6 +21,8 @@ function ConvertJSON {
     if ($arquivo -and $arquivodestino) {
         # python .\metadataToJsonDistinctLatLongValueOnly.py ($arquivo + '.bin') $arquivodestino
         python .\modules\python\klv2json.py $($arquivo) $($arquivodestino)
+        $arquivodestino2 = $arquivodestino + "-raw"
+        python .\modules\python\klv2jsonraw.py $($arquivo) $($arquivodestino2)
         #python C:\ScriptsPowerShell\metadataToJson.py $arquivo $arquivodestino
     } 
     else {

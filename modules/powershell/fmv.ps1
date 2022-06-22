@@ -76,7 +76,7 @@ function FMVData {
         
         ConvertJSON $temp $out
         
-        Remove-Item $temp
+        # Remove-Item $temp
     }
     else {
         Write-Host "Arquivo existente, sem parametro substituir."

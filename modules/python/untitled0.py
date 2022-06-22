@@ -1,6 +1,8 @@
 # %% [markdown]
 #Carrega Módulos
 #Author Pedro Tancredo
+
+#%%
 import subprocess
 import re 
 import os
@@ -19,6 +21,15 @@ def get_length(filename):
         return rs.group(1), rs.group(2)
                 
 #%%
+#Calcula HASH
+import hashlib
+def md5(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
+#%%
 #Parâmetros
 InputPath  = r'Y:/'
 OutputPath = r'Z:/'
@@ -27,6 +38,49 @@ OutputPath = r'Z:/'
 #Entrada
 my_path = InputPath
 filests = glob.glob(my_path + '/**/*.ts', recursive=True)
+
+#%%
+# durationts = [0]*len(filests)
+# ratets = [0]*len(filests)
+hashts = [0]*len(filests)
+for i, file in enumerate(filests):
+    if i < 0:
+        continue
+    print(str(i))
+    print(file)
+    # durationts[i], ratets[i] = get_length(file)
+    # Rodou até o 440
+    hashts[i] = md5(file)
+    # print(durationts[i],'--',ratets[i])#,hashts[i])
+    print(i,hashts[i])
+
+#%%
+
+ts = [sub.replace('Y://','') for sub in filests]
+# indexwav = [sub for sub in wav]
+
+dfts = pd.DataFrame(ts)
+dfts['duration'] = durationts
+dfts['bitrate'] = ratets
+
+#%%
+
+ts = [sub.replace('Y://','') for sub in filests]
+# indexwav = [sub for sub in wav]
+
+dfts = pd.DataFrame(ts)
+dfts['hash_md5'] = hashts
+
+data = dfts.to_json('./hash_fmv.json', orient='columns')
+print(data)
+
+
+#%%
+data = dfts.to_json('./fmv2.json', orient='columns')
+print(data)
+
+#%%
+newdf = pd.read_json('./hash_fmv.json')
 #%%
 #Saída
 my_path = OutputPath
